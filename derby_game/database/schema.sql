@@ -14,8 +14,11 @@ CREATE TABLE derby.horses (
     horse_id SERIAL PRIMARY KEY,
     owner_id BIGINT REFERENCES derby.trainers(user_id),
     name VARCHAR(255) NOT NULL,
-    birth_timestamp TIMESTAMPTZ DEFAULT NOW(), -- THIS IS THE FIX
-    
+    strategy VARCHAR(50) NOT NULL,             -- <-- ADDED
+    min_preferred_distance INT NOT NULL,     -- <-- ADDED
+    max_preferred_distance INT NOT NULL,     -- <-- ADDED
+    birth_timestamp TIMESTAMPTZ DEFAULT NOW(),
+
     -- Core Stats
     spd INT NOT NULL,
     sta INT NOT NULL,
@@ -23,9 +26,9 @@ CREATE TABLE derby.horses (
     grt INT NOT NULL,
     cog INT NOT NULL,
     lck INT NOT NULL,
-    
+
     hg_score INT NOT NULL,
-    
+
     -- Status Fields
     is_retired BOOLEAN DEFAULT FALSE,
     in_training_until TIMESTAMP
@@ -76,21 +79,19 @@ CREATE TABLE derby.trainer_inventory (
     quantity INT DEFAULT 1
 );
 
+-- Stores the "playback" log for all races.
 CREATE TABLE derby.race_rounds (
     round_id SERIAL PRIMARY KEY,
     race_id INT REFERENCES derby.races(race_id),
     round_number INT NOT NULL,
     horse_id INT REFERENCES derby.horses(horse_id),
-    movement_roll FLOAT NOT NULL,
-    stamina_multiplier FLOAT NOT NULL,
-    final_position FLOAT NOT NULL,
-    
-    -- A JSONB field to store a list of events that happened this round.
-    -- e.g., [{"type": "grit_boost", "multiplier": 1.25}]
-    -- e.g., [{"type": "skill_trigger", "skill": "The Final Push"}]
-    round_events JSONB
+    movement_roll FLOAT NOT NULL,           -- Final movement this round
+    stamina_multiplier FLOAT NOT NULL,      -- STA effect applied
+    final_position FLOAT NOT NULL,          -- Position *after* movement
+    round_events JSONB                      -- JSON list of events (Grit, Skills)
 );
 
+-- Stores all asynchronous messages for players.
 CREATE TABLE derby.notifications (
     notification_id SERIAL PRIMARY KEY,
     user_id BIGINT REFERENCES derby.trainers(user_id),

@@ -70,7 +70,47 @@
     },
     "stat_decay_loss": [1, 2]
   },
+  "race_strategies": {
+    "Front Runner": {
+      "spd_modifier": { "early_race": 1.15, "mid_race": 1.0,  "late_race": 0.85 },
+      "fcs_modifier": { "early_race": 0,    "mid_race": -5,   "late_race": -10  },
+      "grit_chance_modifier": { "late_race": -5 }
+    },
+    "Pace Chaser": {
+      "spd_modifier": { "early_race": 1.0,  "mid_race": 1.1,  "late_race": 1.0  },
+      "fcs_modifier": { "early_race": 0,    "mid_race": 0,    "late_race": 0    },
+      "grit_chance_modifier": { "late_race": 0 }
+    },
+    "Late Surger": {
+      "spd_modifier": { "early_race": 0.9,  "mid_race": 1.0,  "late_race": 1.15 },
+      "fcs_modifier": { "early_race": 0,    "mid_race": 0,    "late_race": 5    },
+      "grit_chance_modifier": { "late_race": 5 }
+    },
+    "End Closer": {
+      "spd_modifier": { "early_race": 0.8,  "mid_race": 0.95, "late_race": 1.25 },
+      "fcs_modifier": { "early_race": 0,    "mid_race": 0,    "late_race": 10   },
+      "grit_chance_modifier": { "late_race": 10 }
+    }
+  },
+
+  "preferred_distance_generation": {
+    "center_point_min": 1600,
+    "center_point_max": 3000,
+    "range_size_options": [400, 600, 800]
+  },
+
+  "preferred_distance_penalty": {
+    "penalty_per_meter_diff": 100.0,
+    "penalty_percent_per_step": 0.01,
+    "max_penalty_percent": 0.25
+  },
+
   "race_simulation": {
+    "phase_thresholds": {
+      "early_end_percent": 0.20,
+      "mid_end_percent": 0.70
+    },
+    "min_move_per_round": 10,
     "fcs_sigma_map": {
       "min_fcs": 50,
       "max_fcs": 150,
