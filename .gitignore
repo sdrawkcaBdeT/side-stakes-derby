@@ -1,0 +1,5 @@
+.env
+derby_game/__pycache__/__init__.cpython-311.pyc
+derby_game/database/__pycache__/__init__.cpython-311.pyc
+derby_game/database/__pycache__/connection.cpython-311.pyc
+derby_game/__pycache__/simulation.cpython-311.pyc
