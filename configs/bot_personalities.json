@@ -1,0 +1,252 @@
+[
+  {
+    "name": "PaddockPete",
+    "bankroll": 10000,
+    "bet_frequency": 0.95,
+    "bet_timing": "early",
+    "target_preference": "favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.03,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "StartingGateSally",
+    "bankroll": 12000,
+    "bet_frequency": 0.90,
+    "bet_timing": "early",
+    "target_preference": "favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.02,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "FirstTurnFrank",
+    "bankroll": 11000,
+    "bet_frequency": 0.85,
+    "bet_timing": "early",
+    "target_preference": "random",
+    "wager_strategy": "flat",
+    "wager_amount": 300,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "BackstretchBarry",
+    "bankroll": 15000,
+    "bet_frequency": 0.70,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 2
+  },
+  {
+    "name": "HomestretchHarry",
+    "bankroll": 18000,
+    "bet_frequency": 0.65,
+    "bet_timing": "late",
+    "target_preference": "second_favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.06,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "GrandstandGus",
+    "bankroll": 20000,
+    "bet_frequency": 0.80,
+    "bet_timing": "any",
+    "target_preference": "favorite",
+    "wager_strategy": "flat",
+    "wager_amount": 500,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "ClubhouseClara",
+    "bankroll": 22000,
+    "bet_frequency": 0.75,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.04,
+    "max_bets_per_race": 3
+  },
+  {
+    "name": "BagginsTheBookie",
+    "bankroll": 50000,
+    "bet_frequency": 1.00,
+    "bet_timing": "mid",
+    "target_preference": "human_fade",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.10,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "DailyDoubleDoug",
+    "bankroll": 16000,
+    "bet_frequency": 0.50,
+    "bet_timing": "any",
+    "target_preference": "random",
+    "wager_strategy": "flat",
+    "wager_amount": 1000,
+    "max_bets_per_race": 2
+  },
+  {
+    "name": "PhotoFinishPhil",
+    "bankroll": 30000,
+    "bet_frequency": 0.40,
+    "bet_timing": "late",
+    "target_preference": "longshot",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.08,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "SniperSam",
+    "bankroll": 25000,
+    "bet_frequency": 0.45,
+    "bet_timing": "late",
+    "target_preference": "longshot",
+    "wager_strategy": "flat",
+    "wager_amount": 750,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "HighRollerHarry",
+    "bankroll": 100000,
+    "bet_frequency": 0.15,
+    "bet_timing": "mid",
+    "target_preference": "favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.20,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "AnalystAnna",
+    "bankroll": 15000,
+    "bet_frequency": 0.60,
+    "bet_timing": "any",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 3
+  },
+  {
+    "name": "CautiousCarl",
+    "bankroll": 8000,
+    "bet_frequency": 0.90,
+    "bet_timing": "early",
+    "target_preference": "favorite",
+    "wager_strategy": "flat",
+    "wager_amount": 100,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "ValueVince",
+    "bankroll": 18000,
+    "bet_frequency": 0.55,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.07,
+    "max_bets_per_race": 2
+  },
+  {
+    "name": "RandomRick",
+    "bankroll": 9000,
+    "bet_frequency": 0.80,
+    "bet_timing": "any",
+    "target_preference": "random",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.02,
+    "max_bets_per_race": 4
+  },
+  {
+    "name": "MomentumMary",
+    "bankroll": 13000,
+    "bet_frequency": 0.60,
+    "bet_timing": "mid",
+    "target_preference": "momentum",
+    "wager_strategy": "flat",
+    "wager_amount": 400,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "LongshotLarry",
+    "bankroll": 20000,
+    "bet_frequency": 0.30,
+    "bet_timing": "late",
+    "target_preference": "longshot",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "SteadyEddie",
+    "bankroll": 14000,
+    "bet_frequency": 0.90,
+    "bet_timing": "early",
+    "target_preference": "second_favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.03,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "WhaleWendy",
+    "bankroll": 120000,
+    "bet_frequency": 0.10,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.15,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "ContrarianConnie",
+    "bankroll": 17000,
+    "bet_frequency": 0.40,
+    "bet_timing": "late",
+    "target_preference": "human_fade",
+    "wager_strategy": "flat",
+    "wager_amount": 600,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "MinuteMilly",
+    "bankroll": 10000,
+    "bet_frequency": 0.70,
+    "bet_timing": "late",
+    "target_preference": "random",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.04,
+    "max_bets_per_race": 2
+  },
+  {
+    "name": "ThriftyTheo",
+    "bankroll": 7500,
+    "bet_frequency": 0.95,
+    "bet_timing": "any",
+    "target_preference": "value",
+    "wager_strategy": "flat",
+    "wager_amount": 50,
+    "max_bets_per_race": 5
+  },
+  {
+    "name": "ProfessorPlum",
+    "bankroll": 25000,
+    "bet_frequency": 0.50,
+    "bet_timing": "early",
+    "target_preference": "statistical",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 1
+  },
+  {
+    "name": "JustForFunJen",
+    "bankroll": 5000,
+    "bet_frequency": 1.00,
+    "bet_timing": "any",
+    "target_preference": "random",
+    "wager_strategy": "flat",
+    "wager_amount": 100,
+    "max_bets_per_race": 1
+  }
+]

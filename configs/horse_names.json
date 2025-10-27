@@ -1,0 +1,88 @@
+{
+  "strategies": {
+    "Front Runner": {
+      "description": "Tries to get an early lead and hold it.",
+      "early_race": { "mean": 120, "sigma": 20 },
+      "mid_race":   { "mean": 100, "sigma": 30 },
+      "late_race":  { "mean": 90,  "sigma": 40 }
+    },
+    "Pace Chaser": {
+      "description": "Stays with the pack before making a move.",
+      "early_race": { "mean": 100, "sigma": 25 },
+      "mid_race":   { "mean": 110, "sigma": 25 },
+      "late_race":  { "mean": 100, "sigma": 30 }
+    },
+    "Late Surger": {
+      "description": "Conserves energy for a final burst of speed.",
+      "early_race": { "mean": 90,  "sigma": 30 },
+      "mid_race":   { "mean": 100, "sigma": 25 },
+      "late_race":  { "mean": 130, "sigma": 35 }
+    },
+    "End Closer": {
+      "description": "Stays far behind before unleashing an all-or-nothing kick.",
+      "early_race": { "mean": 85, "sigma": 35 },
+      "mid_race":   { "mean": 95, "sigma": 20 },
+      "late_race":  { "mean": 150, "sigma": 50 }
+    }
+  },
+  "adjectives": {
+    "Galloping":  { "sigma_modifier": -10, "description": "Very consistent, a powerful stride." },
+    "Midnight":   { "sigma_modifier": 0, "description": "A balanced, average runner." },
+    "Dusty":      { "sigma_modifier": 2, "description": "An older, slightly inconsistent horse." },
+    "Iron":       { "sigma_modifier": -8, "description": "A sturdy, highly reliable performer." },
+    "Star":       { "sigma_modifier": 4, "description": "Prone to flashes of brilliance or unexpected failure." },
+    "Thunder":    { "sigma_modifier": 6, "description": "Powerful but can be erratic." },
+    "Shadow":     { "sigma_modifier": -2, "description": "A subtle but fairly consistent runner." },
+    "Golden":     { "sigma_modifier": 0, "description": "A standard, well-rounded horse." },
+    "Baggins":    { "sigma_modifier": 15, "description": "An enigma wrapped in a mystery; highly unpredictable." },
+    "Cheating":   { "sigma_modifier": 50, "description": "You never know what rule-bending trick you're going to get." },
+    "BOT":        { "sigma_modifier": -50, "description": "Robotic, absurdly consistent and predictable." },
+    "Nice":       { "sigma_modifier": -4, "description": "A pleasant, predictable horse that runs its race." },
+    "Mean":       { "sigma_modifier": 7, "description": "Aggressive and inconsistent." },
+    "Godly":      { "sigma_modifier": -5, "description": "Divinely consistent and reliable." },
+    "Inspector":  { "sigma_modifier": -6, "description": "Scrupulous and very predictable." },
+    "Dishonest":  { "sigma_modifier": 10, "description": "You're not sure what you're going to get." },
+    "Old School": { "sigma_modifier": -3, "description": "Follows a familiar, reliable pattern." },
+    "Broken":     { "sigma_modifier": 57, "description": "Extremely erratic, a wild card. Are we sure this one works right?" },
+    "Neon":       { "sigma_modifier": 5, "description": "Flashy and eye-catching, but not always consistent." },
+    "Lucky":      { "sigma_modifier": 9, "description": "Relies on luck; highly variable performance." },
+    "Turbo":      { "sigma_modifier": 8, "description": "Can be incredibly fast or completely stall out." },
+    "Sticky":     { "sigma_modifier": 3, "description": "Tends to get stuck in the pack, slightly inconsistent." },
+    "Captain":    { "sigma_modifier": -12, "description": "A leader of the pack, extremely reliable." },
+    "Major":      { "sigma_modifier": -11, "description": "A commanding and highly consistent presence." },
+    "Wild":       { "sigma_modifier": 10, "description": "Hard to predict from one race to the next." },
+    "Furious":    { "sigma_modifier": 8, "description": "Runs with aggressive, reckless abandon." },
+    "Stoic":      { "sigma_modifier": -9, "description": "Extremely steady and unflappable." },
+    "Noble":      { "sigma_modifier": -7, "description": "Runs with predictable grace and honor." },
+    "Cash":       { "sigma_modifier": -15, "description": "As reliable as money in the bank." }
+    },
+  "nouns": {
+    "Bullet":    { "mean_modifier": 20, "preferred_distance": 1600 },
+    "Fury":      { "mean_modifier": 15, "preferred_distance": 1800 },
+    "Runner":    { "mean_modifier": 5, "preferred_distance": 2200 },
+    "Chaser":    { "mean_modifier": 5, "preferred_distance": 2400 },
+    "Stallion":  { "mean_modifier": -5, "preferred_distance": 2800 },
+    "Dreamer":   { "mean_modifier": 0, "preferred_distance": 2400 },
+    "Comet":     { "mean_modifier": 12, "preferred_distance": 2000 },
+    "Baggins":   { "mean_modifier": -15, "preferred_distance": 1600 },
+    "Cheater":   { "mean_modifier": 8, "preferred_distance": 1800 },
+    "God":       { "mean_modifier": 25, "preferred_distance": 2400 },
+    "Nature":    { "mean_modifier": 2, "preferred_distance": 2600 },
+    "Gadget":    { "mean_modifier": 7, "preferred_distance": 2000 },
+    "Wave":      { "mean_modifier": 4, "preferred_distance": 2200 },
+    "Insomnia":  { "mean_modifier": -2, "preferred_distance": 3000 },
+    "Twice":     { "mean_modifier": 6, "preferred_distance": 2000 },
+    "Epidemic":  { "mean_modifier": -4, "preferred_distance": 2400 },
+    "King":      { "mean_modifier": 3, "preferred_distance": 2400 },
+    "Queen":     { "mean_modifier": 3, "preferred_distance": 2400 },
+    "Jester":    { "mean_modifier": -2, "preferred_distance": 2000 },
+    "Engine":    { "mean_modifier": 10, "preferred_distance": 2800 },
+    "Glitch":    { "mean_modifier": -10, "preferred_distance": 1600 },
+    "Rocket":    { "mean_modifier": 18, "preferred_distance": 1600 },
+    "Mirror":    { "mean_modifier": 1, "preferred_distance": 2400 },
+    "Major":     { "mean_modifier": 8, "preferred_distance": 2600 },
+    "Pilgrim":   { "mean_modifier": -10, "preferred_distance": 3200 },
+    "Mountain":  { "mean_modifier": -8, "preferred_distance": 3000 },
+    "Crew":      { "mean_modifier": 5, "preferred_distance": 2400 }
+    }
+}
