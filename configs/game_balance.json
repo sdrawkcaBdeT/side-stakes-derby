@@ -1,0 +1,96 @@
+{
+  "economy": {
+    "daily_stable_fee": 100,
+    "house_vig": 0.08,
+    "training_fee": 450,
+    "consumables": {
+      "premium_feed": 250,
+      "conditioning_supplement": 150
+    },
+    "stable_expansion_slots": {
+      "3": 200000,
+      "4": 750000,
+      "5": 2500000
+    }
+  },
+  "horse_generation": {
+    "base_stats": {
+      "mean": 100,
+      "std_dev": 17,
+      "min": 50,
+      "max": 150
+    },
+    "lck_stats": {
+      "mean": 300,
+      "std_dev": 67,
+      "min": 100,
+      "max": 500
+    }
+  },
+  "hg_formula_weights": {
+    "spd": 3.5,
+    "sta": 3.5,
+    "fcs": 1.5,
+    "grt": 1.0,
+    "cog": 1.0,
+    "lck": 0.5
+  },
+  "training": {
+    "roll_chances": {
+      "crit_success": 0.03,
+      "standard_success": 0.65,
+      "failure": 0.27,
+      "setback": 0.05
+    },
+    "roll_gains": {
+      "crit_success": [5, 8],
+      "standard_success": [1, 4],
+      "setback": -1
+    },
+    "lck_advantage_map": {
+      "min_lck": 100,
+      "max_lck": 500,
+      "min_prob": 0.20,
+      "max_prob": 0.38
+    },
+    "age_modifiers": {
+      "2": 1.50,
+      "3": 1.00,
+      "4": 0.50,
+      "5": -0.25,
+      "6": -0.75,
+      "7": -1.50
+    }
+  },
+  "lifecycle": {
+    "stat_decay_chances": {
+      "5": 0.50,
+      "6": 0.75,
+      "7": 0.90
+    },
+    "stat_decay_loss": [1, 2]
+  },
+  "race_simulation": {
+    "fcs_sigma_map": {
+      "min_fcs": 50,
+      "max_fcs": 150,
+      "min_sigma": 25,
+      "max_sigma": 75
+    },
+    "sta_modifier": {
+      "base_sta": 100.0,
+      "base_distance": 1000.0,
+      "distance_factor_per_m": 500.0,
+      "base_power": 1000.0,
+      "clip_min": 0.1,
+      "clip_max": 1.5
+    },
+    "grt_boost": {
+      "min_grt": 50,
+      "max_grt": 150,
+      "min_chance": 10.0,
+      "max_chance": 30.0,
+      "boost_multiplier": 1.25
+    }
+  }
+}

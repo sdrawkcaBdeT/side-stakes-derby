@@ -75,3 +75,26 @@ CREATE TABLE derby.trainer_inventory (
     item_name VARCHAR(100) NOT NULL, -- e.g., 'Premium Feed'
     quantity INT DEFAULT 1
 );
+
+CREATE TABLE derby.race_rounds (
+    round_id SERIAL PRIMARY KEY,
+    race_id INT REFERENCES derby.races(race_id),
+    round_number INT NOT NULL,
+    horse_id INT REFERENCES derby.horses(horse_id),
+    movement_roll FLOAT NOT NULL,
+    stamina_multiplier FLOAT NOT NULL,
+    final_position FLOAT NOT NULL,
+    
+    -- A JSONB field to store a list of events that happened this round.
+    -- e.g., [{"type": "grit_boost", "multiplier": 1.25}]
+    -- e.g., [{"type": "skill_trigger", "skill": "The Final Push"}]
+    round_events JSONB
+);
+
+CREATE TABLE derby.notifications (
+    notification_id SERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES derby.trainers(user_id),
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);

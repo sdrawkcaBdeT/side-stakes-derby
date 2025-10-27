@@ -1,7 +1,10 @@
 import numpy as np
 import json
+import psycopg2.extras
 from derby_game.database.connection import get_db_connection
 from datetime import datetime, timezone
+from copy import deepcopy
+from derby_game.config import BALANCE_CONFIG
 
 # --- Configuration ---
 # We will use this to generate names.
@@ -91,14 +94,14 @@ class Horse:
         # We add 2 to the result of (days // 12)
         return (self.age_in_days // 12) + 2
 
-    # ... (Keep the _calculate_hg and generate_new_horse static methods exactly as they are) ...
     @staticmethod
     def _calculate_hg(spd, sta, fcs, grt, cog, lck):
         """
-        Calculates the HG score based on the design doc's formula.
-        HG = (SPD * 3.5) + (STA * 3.5) + (FCS * 1.5) + (GRT * 1.0) + (COG * 1.0) + (LCK * 0.5)
+        Calculates the HG score based on config formula.
         """
-        hg = (spd * 3.5) + (sta * 3.5) + (fcs * 1.5) + (grt * 1.0) + (cog * 1.0) + (lck * 0.5)
+        cfg = BALANCE_CONFIG['hg_formula_weights']
+        hg = (spd * cfg['spd']) + (sta * cfg['sta']) + (fcs * cfg['fcs']) + \
+             (grt * cfg['grt']) + (cog * cfg['cog']) + (lck * cfg['lck'])
         return int(hg)
 
     @staticmethod
@@ -106,27 +109,19 @@ class Horse:
         """
         Generates a new G-Grade horse with random stats, saves it to the DB,
         and returns the new horse's ID.
-        
-        This is Feature 2.1 from our plan, now with corrected stat ranges.
         """
         
-        # --- 1. Generate Stats (Based on NEW 50-150 Range) ---
-        # SPD/STA/FCS/GRT/COG: 50 - 150 (Normal Distribution)
-        # LCK: 100 - 500 (Normal Distribution)
+        # --- 1. Generate Stats (Based on Config) ---
+        cfg_base = BALANCE_CONFIG['horse_generation']['base_stats']
+        cfg_lck = BALANCE_CONFIG['horse_generation']['lck_stats']
         
-        # Stats with mean 100, std dev ~17, clipped to [50, 150]
-        mean = 100
-        std_dev = 17 
-        spd = int(np.clip(np.random.normal(mean, std_dev), 50, 150))
-        sta = int(np.clip(np.random.normal(mean, std_dev), 50, 150))
-        fcs = int(np.clip(np.random.normal(mean, std_dev), 50, 150))
-        grt = int(np.clip(np.random.normal(mean, std_dev), 50, 150))
-        cog = int(np.clip(np.random.normal(mean, std_dev), 50, 150))
+        spd = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
+        sta = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
+        fcs = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
+        grt = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
+        cog = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
         
-        # LCK with mean 300, std dev ~67, clipped to [100, 500]
-        lck_mean = 300
-        lck_std_dev = 67
-        lck = int(np.clip(np.random.normal(lck_mean, lck_std_dev), 100, 500))
+        lck = int(np.clip(np.random.normal(cfg_lck['mean'], cfg_lck['std_dev']), cfg_lck['min'], cfg_lck['max']))
 
         # --- 2. Calculate HG ---
         hg_score = Horse._calculate_hg(spd, sta, fcs, grt, cog, lck)
@@ -260,124 +255,129 @@ class Race:
         """
         Simulates one round of the race for all horses.
         This is the core physics engine.
+        Returns a list of log dictionaries, one for each horse.
         """
         phase = self._get_current_phase(round_number)
+        cfg_sim = BALANCE_CONFIG['race_simulation']
+        
+        round_log_entries = []
         
         for horse in self.horses:
             if horse.horse_id in self.results_log:
-                continue # This horse has already finished
+                continue 
 
-            # 1. Base Movement (SPD)
-            # Use SPD as the 'mean' for the normal distribution
             base_mean = horse.spd
-
-            # 2. Consistency (FCS)
-            # FCS determines the 'sigma' (standard deviation).
-            # We want high FCS (150) -> low sigma
-            # We want low FCS (50) -> high sigma
-            # Let's map FCS [50, 150] to sigma [75, 25]
-            max_sigma = 75
-            min_sigma = 25
-            fcs_range = 150 - 50 # 100
-            sigma_range = max_sigma - min_sigma # 50
             
-            sigma = max_sigma - ((horse.fcs - 50) / fcs_range) * sigma_range
-            
-            # Get the random movement, ensuring it's not negative
+            # --- 2. Consistency (FCS) ---
+            cfg_fcs = cfg_sim['fcs_sigma_map']
+            fcs_range = cfg_fcs['max_fcs'] - cfg_fcs['min_fcs']
+            sigma_range = cfg_fcs['max_sigma'] - cfg_fcs['min_sigma']
+            sigma = cfg_fcs['max_sigma'] - ((horse.fcs - cfg_fcs['min_fcs']) / fcs_range) * sigma_range
             movement = np.clip(np.random.normal(base_mean, sigma), 10, None)
 
-            # 3. Stamina (STA)
-            # This is a smooth function where every point of STA matters.
-            # We define a 'base stamina' (100) and a 'base distance' (1000m).
-            # A horse with 100 STA running at 1000m has a 1.0x multiplier.
-            
-            base_sta = 100.0
-            base_distance = 1000.0
-            
-            # a. Calculate how different the horse is from the 'average'
-            # This will be a value from -50 (worst) to +50 (best)
-            sta_difference = horse.sta - base_sta
-            
-            # b. Calculate how much the distance amplifies the stamina effect.
-            # The effect scales up every 500m over the base distance.
-            distance_factor = max(0, (self.distance - base_distance) / 500.0)
-            
-            # c. Calculate the final modifier.
-            # A -50 STA diff at 3000m (dist_factor=4) gives a -200 modifier.
-            # A +50 STA diff at 3000m (dist_factor=4) gives a +200 modifier.
+            # --- 3. Stamina (STA) ---
+            cfg_sta = cfg_sim['sta_modifier']
+            sta_difference = horse.sta - cfg_sta['base_sta']
+            distance_factor = max(0, (self.distance - cfg_sta['base_distance']) / cfg_sta['distance_factor_per_m'])
             sta_modifier = sta_difference * distance_factor
-            
-            # d. Apply this to a 'base power' to get a multiplier.
-            # (1000 - 200) / 1000 = 0.8x multiplier
-            # (1000 + 200) / 1000 = 1.2x multiplier
-            base_power = 1000.0
-            sta_multiplier = (base_power + sta_modifier) / base_power
-            
-            # e. Apply the multiplier to the horse's movement.
-            # We'll clip it to prevent extreme results (e.g., 90% penalty or 50% bonus)
-            movement *= np.clip(sta_multiplier, 0.1, 1.5)
+            sta_multiplier = (cfg_sta['base_power'] + sta_modifier) / cfg_sta['base_power']
+            movement *= np.clip(sta_multiplier, cfg_sta['clip_min'], cfg_sta['clip_max'])
 
-            # 4. Grit (GRT)
-            # Chance for a speed boost in the 'late_race' phase
+            # This is our new event tracker
+            events_this_round = []
+
+            # --- 4. Grit (GRT) ---
             if phase == 'late_race':
-                # Map GRT [50, 150] to a % chance [10%, 30%]
-                grit_chance = 10 + ((horse.grt - 50) / fcs_range) * 20
+                cfg_grt = cfg_sim['grt_boost']
+                grt_range = cfg_grt['max_grt'] - cfg_grt['min_grt']
+                chance_range = cfg_grt['max_chance'] - cfg_grt['min_chance']
+                grit_chance = cfg_grt['min_chance'] + ((horse.grt - cfg_grt['min_grt']) / grt_range) * chance_range
+                
                 if np.random.uniform(0, 100) < grit_chance:
-                    # Apply a significant boost (e.g., +25%)
-                    movement *= 1.25 
+                    movement *= cfg_grt['boost_multiplier']
+                    # We log the event
+                    events_this_round.append({
+                        "type": "grit_boost",
+                        "multiplier": cfg_grt['boost_multiplier']
+                    })
             
-            # 5. COG & LCK
-            # (Not implemented in this core loop, as they affect
-            # training and special skills, as per the design doc)
-
-            # Update the horse's position
+            # --- 5. COG / LCK (The Future) ---
+            # When we implement skills, we'll add logic here.
+            # LCK can influence the grit_chance roll.
+            # COG can trigger a new skill.
+            # Any triggers will just be added to the events_this_round list.
+            
+            # --- 6. Update Position & Check Finish ---
             self.positions[horse.horse_id] += movement
-            
-            # Check if finished
             if self.positions[horse.horse_id] >= self.distance:
                 self.results_log.append(horse.horse_id)
 
-    def run_simulation(self):
+            # --- 7. Create the Log Entry ---
+            round_log_entries.append({
+                "race_id": self.race_id,
+                "round_number": round_number,
+                "horse_id": horse.horse_id,
+                "movement_roll": movement, # This is the final movement this round
+                "stamina_multiplier": sta_multiplier,
+                "final_position": self.positions[horse.horse_id],
+                "round_events": json.dumps(events_this_round) if events_this_round else None
+            })
+            
+        return round_log_entries
+
+    def run_simulation(self, silent=False):
         """
-        Runs the full race simulation from start to finish.
+        Runs the full race simulation and saves the detailed log to the database.
         """
-        print(f"\n--- Simulating Race {self.race_id} ({self.distance}m) ---")
+        if not silent:
+            print(f"\n--- Simulating Race {self.race_id} ({self.distance}m) ---")
+            
         if not self.horses:
-            print("Race simulation cancelled: No horses.")
+            if not silent:
+                print("Race simulation cancelled: No horses.")
             return []
+            
+        full_race_log = [] # This will store all log entries
             
         # Run 24 rounds
         for i in range(1, 25):
-            self._run_round(i)
-            # Stop if all horses have finished
+            round_log = self._run_round(i)
+            full_race_log.extend(round_log)
             if len(self.results_log) == len(self.horses):
                 break
         
-        # Add any horses that didn't finish (DNF)
+        # Add DNFs
         for horse in self.horses:
             if horse.horse_id not in self.results_log:
                 self.results_log.append(horse.horse_id)
         
-        return self.get_results()
-
-    def get_results(self):
-        """Returns the final, ordered list of horse objects."""
-        # Use the results_log to get the finish order.
-        # For DNFs (who were added last), sort them by their final position.
+        # We only do this if it's NOT a silent Monte Carlo run
+        if not silent:
+            conn = None
+            try:
+                conn = get_db_connection()
+                with conn.cursor() as cur:
+                    # Use psycopg2's fast executemany to insert all rounds at once
+                    args_list = [
+                        (log['race_id'], log['round_number'], log['horse_id'], 
+                         log['movement_roll'], log['stamina_multiplier'], 
+                         log['final_position'], log['round_events'])
+                        for log in full_race_log
+                    ]
+                    psycopg2.extras.execute_values(
+                        cur,
+                        "INSERT INTO race_rounds (race_id, round_number, horse_id, movement_roll, stamina_multiplier, final_position, round_events) VALUES %s",
+                        args_list
+                    )
+                    conn.commit()
+                    print(f"     ...Saved {len(full_race_log)} round logs to database.")
+            except Exception as e:
+                if conn: conn.rollback()
+                print(f"!!! Error saving race log: {e}")
+            finally:
+                if conn: conn.close()
         
-        finished_ids = self.results_log
-        
-        # Create a dict of {id: horse_obj} for easy lookup
-        horse_map = {h.horse_id: h for h in self.horses}
-        
-        # Return the list of Horse objects in the order they finished
-        ordered_horses = [horse_map[horse_id] for horse_id in finished_ids]
-        
-        print("\n--- Race Results ---")
-        for i, horse in enumerate(ordered_horses):
-            print(f"{i+1}. {horse.name} (HG: {horse.hg_score})")
-            
-        return ordered_horses
+        return self.get_results(silent=silent)
 
 class Bookie:
     """
@@ -409,11 +409,11 @@ class Bookie:
 
         for _ in range(simulations):
             # Create a deep copy of the race to run a fresh simulation
-            sim_race = deepcopy.deepcopy(self.race)
+            sim_race = deepcopy(self.race)
             
             # Run the simulation and get the winner
             # Our new run_simulation() is much simpler than the old v2 logic
-            results = sim_race.run_simulation()
+            results = sim_race.run_simulation(silent=True)
             
             if results:
                 winner_horse = results[0]
@@ -427,23 +427,18 @@ class Bookie:
         self._calculate_all_odds()
         return self.opening_odds
 
-    def _calculate_odds_from_win_rate(self, win_rate: float, house_vig: float = 0.08):
+    def _calculate_odds_from_win_rate(self, win_rate: float):
         """
         Converts a win probability (0.0 to 1.0) into fractional odds.
-        This is migrated directly from your race_logic_v2.py.
         """
+        house_vig = BALANCE_CONFIG['economy']['house_vig'] # <-- This is the change
+        
         if win_rate == 0:
-            return 999.0  # Avoid division by zero, give it 999 to 1 odds
+            return 999.0
         
-        # Fair odds (no house edge)
         fair_odds = (1 / win_rate) - 1
-        
-        # Add the house edge
-        # We reduce the payout, which means we increase the "odds value"
         final_odds = fair_odds * (1 - house_vig)
-        
-        # Clamp to a minimum (e.g., 0.1 to 1) and a max (e.g., 999 to 1)
-        final_odds = np.clip(final_odds, 0.1, 999)
+        final_odds = np.clip(final_odds, 0.1, 1257)
         
         return final_odds
 
@@ -474,7 +469,7 @@ if __name__ == "__main__":
     conn = None
     test_race_id = None
     stayer_id = None
-
+    
     try:
         conn = get_db_connection()
         with conn.cursor() as cur:
@@ -484,7 +479,6 @@ if __name__ == "__main__":
             cur.execute("DELETE FROM horses WHERE owner_id = 1;")
             
             # Horse 1: "Speedy Sprinter" (High SPD, Low STA)
-            # Stats (spd, sta, fcs, grt, cog, lck) -> (150, 50, 100, 100, 100, 300)
             hg_sprinter = Horse._calculate_hg(150, 50, 100, 100, 100, 300)
             cur.execute(
                 "INSERT INTO horses (owner_id, name, spd, sta, fcs, grt, cog, lck, hg_score) "
@@ -494,20 +488,16 @@ if __name__ == "__main__":
             sprinter_id = cur.fetchone()[0]
 
             # Horse 2: "Steady Stayer" (Low SPD, High STA)
-            # Stats (spd, sta, fcs, grt, cog, lck) -> (110, 150, 100, 100, 100, 300) <-- SPD changed to 110
-            hg_stayer = Horse._calculate_hg(110, 150, 100, 100, 100, 300) # <--- THIS LINE IS CHANGED
+            # SPD is 110 to give it the edge
+            hg_stayer = Horse._calculate_hg(110, 150, 100, 100, 100, 300) 
             cur.execute(
                 "INSERT INTO horses (owner_id, name, spd, sta, fcs, grt, cog, lck, hg_score) "
-                "VALUES (1, 'Steady Stayer', 110, 150, 100, 100, 100, 300, %s) RETURNING horse_id;", # <--- THIS LINE IS CHANGED
+                "VALUES (1, 'Steady Stayer', 110, 150, 100, 100, 100, 300, %s) RETURNING horse_id;", 
                 (hg_stayer,)
             )
             stayer_id = cur.fetchone()[0]
             
-            print(f"Created Horse ID {sprinter_id} (Sprinter, HG: {hg_sprinter})")
-            print(f"Created Horse ID {stayer_id} (Stayer, HG: {hg_stayer})")
-            
             # --- Test 2: Create a test race ---
-            # A long 3000m race to test stamina
             print("Creating 3000m test race...")
             cur.execute(
                 "INSERT INTO races (tier, distance, entry_fee, status, purse) "
@@ -522,24 +512,38 @@ if __name__ == "__main__":
             
             conn.commit() # Commit all the setup
 
-            # --- Test 4: Run the simulation ---
-            # Now we create the Race object, which will load all this new data
-            race_sim = Race(test_race_id)
-            
-            # Run the simulation
-            results = race_sim.run_simulation()
-            
-            if results and results[0].horse_id == stayer_id:
-                print("\n--- TEST SUCCEEDED ---")
-                print("The 'Steady Stayer' won the long race, as expected.")
-            else:
-                print("\n--- TEST FAILED ---")
-                print("The 'Speedy Sprinter' won, or an error occurred.")
-
     except Exception as e:
         if conn:
             conn.rollback() # Rollback if setup failed
-        print(f"\nAn error occurred during the test: {e}")
+        print(f"\nAn error occurred during the setup: {e}")
     finally:
         if conn:
             conn.close() # Always close the connection
+
+    # --- Test 4: Run the simulation & Bookie (outside the setup try/except) ---
+    if test_race_id:
+        print("\n--- Running Simulation Test ---")
+        race_sim = Race(test_race_id)
+        results = race_sim.run_simulation()
+        
+        if results and results[0].horse_id == stayer_id:
+            print("\n--- SIMULATION TEST SUCCEEDED (or passed with high probability) ---")
+            print("The 'Steady Stayer' won the long race, as expected.")
+        else:
+            print("\n--- SIMULATION TEST FAILED (or a rare upset) ---")
+            print("The 'Speedy Sprinter' won.")
+
+        print("\n--- Running Bookie Test ---")
+        # Re-create a fresh Race object for the bookie
+        bookie_race = Race(test_race_id)
+        bookie = Bookie(bookie_race)
+        odds = bookie.run_monte_carlo(simulations=5000) # 5k is faster for a test
+        
+        if odds and odds['Steady Stayer']['probability'] > odds['Speedy Sprinter']['probability']:
+             print("\n--- BOOKIE TEST SUCCEEDED ---")
+             print(f"The 'Steady Stayer' is the favorite ({odds['Steady Stayer']['probability']*100:.1f}%), as expected.")
+        else:
+            print("\n--- BOOKIE TEST FAILED ---")
+            print("The 'Speedy Sprinter' is the favorite, which is wrong for this distance.")
+    else:
+        print("\nSkipping simulation and bookie tests due to setup failure.")
