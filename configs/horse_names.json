@@ -1,62 +1,136 @@
 {
-  "adjectives": [
-    "Galloping",
-    "Midnight",
-    "Dusty",
-    "Iron",
-    "Star",
-    "Thunder",
-    "Shadow",
-    "Golden",
-    "Baggins",
-    "Cheating",
-    "BOT",
-    "Nice",
-    "Mean",
-    "Godly",
-    "Inspector",
-    "Dishonest",
-    "Old School",
-    "Broken",
-    "Neon",
-    "Lucky",
-    "Turbo",
-    "Sticky",
-    "Captain",
-    "Major",
-    "Wild",
-    "Furious",
-    "Stoic",
-    "Noble",
-    "Cash"
-  ],
-  "nouns": [
-    "Bullet",
-    "Fury",
-    "Runner",
-    "Chaser",
-    "Stallion",
-    "Dreamer",
-    "Comet",
-    "Baggins",
-    "Cheater",
-    "God",
-    "Nature",
-    "Gadget",
-    "Wave",
-    "Insomnia",
-    "Twice",
-    "Epidemic",
-    "King",
-    "Queen",
-    "Jester",
-    "Engine",
-    "Glitch",
-    "Rocket",
-    "Mirror",
-    "Major",
-    "Pilgrim",
-    "Mountain",
-    "Crew"
+  "tiers": {
+    "canon": {
+      "weight": 0.35,
+      "patterns": [
+        "[CanonWord] [AbstractWord]",
+        "[CanonWord] of [CanonWord]"
+      ]
+    },
+    "combo": {
+      "weight": 0.25,
+      "patterns": [
+        "[Adjective] [Noun]"
+      ]
+    },
+    "hybrid": {
+      "weight": 0.10,
+      "patterns": [
+        "[Adjective] [CanonWord]"
+      ]
+    },
+    "modern_phrase": {
+      "weight": 0.30,
+      "patterns": [
+        "[VerbImp] the [NounAnalytic]",
+        "[Better] [VerbImp] [AdverbQuick]",
+        "[NounEvent] at [TimeWord]",
+        "[Front] and [Center]",
+        "[AdjModern] [NounAnalytic]",
+        "[ProperName]'s [NounAnalytic]",
+        "[NumberWord]-[UnitShort] [Acronym]",
+        "[Verb3s] [ParticlePhrase]",
+        "[RoleWord] only",
+        "We [VerbBare]",
+        "[AdjModern] [ColorWord]"
+      ]
+    }
+  },
+
+  "lexicons": {
+    "Adjective": [
+      "Galloping","Midnight","Dusty","Iron","Star","Thunder","Shadow","Golden",
+      "Baggins","Cheating","BOT","Nice","Mean","Godly","Inspector","Dishonest",
+      "Old School","Broken","Neon","Lucky","Turbo","Sticky","Captain","Major",
+      "Wild","Furious","Stoic","Noble","Cash"
+    ],
+
+    "Noun": [
+      "Bullet","Fury","Runner","Chaser","Stallion","Dreamer","Comet","Baggins",
+      "Cheater","God","Nature","Gadget","Wave","Insomnia","Twice","Epidemic",
+      "King","Queen","Jester","Engine","Glitch","Rocket","Mirror","Major",
+      "Pilgrim","Mountain","Crew"
+    ],
+
+    "CanonWord": [
+      "Ribbon","Reed","Requiem","Nocturne","Etude","Virelai","Harmonia","Mechanical",
+      "Vapor","Circuit","Market","Update","Metric","Fantasy","Grace","Wisp","Pastoral",
+      "Oasis","Grimoire","Cabin","Spool","Apple","Sidecar","Jewel","Aqua","Flower",
+      "Rhythm","Polka","Cymbal","March","Veronica","Onyx","Dreammobile"
+    ],
+
+    "AbstractWord": [
+      "Grace","Assumption","Suspense","Faithful","Pastoral","Wisp","Remark","Season",
+      "Poetry","Nocturne","Etude","Fantasy","Rhythm","Elegy"
+    ],
+
+    "RareSingleton": [
+      "Harmonia Grace","Create Send","Aquafjord","Fierce Kick","Ribbon Nocturne",
+      "Harp Rythm","Book of Sugar","Electrified","Work Faithful","Carnwennan",
+      "Reckless Shot","Multicell Call","Hunahpu","Hoeroa","Polka Step","Maleficus",
+      "Reed Fantasy","High Time Soon","Ribbon Virelai","Spool Mover","Jewel Onyx",
+      "Requiem Wisp","Ribbon Etude","Mini Ball Sum","Key Card","Reed Poetry",
+      "Reed Suspense","Black Ebony","Sweet Cabin","Prime Season","Ribbon Pastoral",
+      "Illapa","Gray Chouchou","Chattering Cheek","Paikea","Intense Remark",
+      "Pink Chouchou","Pleasant Clerk","Double Surround","Mechanical Vapor",
+      "Mini Veronica","Polar Dipper","Aqua Oasis","Zamburak","Rhythmic Leap",
+      "Cymbal Rhythm","Circuit Breaker","Stay Charlene","Dokadoka","Frilled Apple",
+      "Flower Net","Gigant Grendel","Black Grimoire","Ribbon March","Sidecar",
+      "Immediate","Irresistible","Desert Baby","Replication",
+      "Fishin' Karambwan","Maxxed Main","Mid only","Plays up top","Data Collector",
+      "Obsessed Hobbiest","Market Maker","Five-foot FOV","Blonda Civic","Dreammobile",
+      "Attack at Dawn","Early Morning Grump","Metric Mind","The Collector","Hot Ratio",
+      "Gold Supply","Plae","Close Parking Spot","Reassess Often","Neon Epidemic",
+      "We Play","Fat Chris","Babo Mouse","Sapph Inflection","Attention To",
+      "Finding Me Tho","Bob's Burgess","Front and Center","Update Cycle",
+      "Periodic Refresh","Scan the Field","Better Act Fast","Wonderful Yellow",
+      "Standing Sleeper","Heroic Assumption"
+    ],
+
+    
+    "VerbImp": ["Scan","Update","Reassess","Park","Act","Attack","Collect","Refresh","Find","Supply","Audit","Measure","Trade","Track"],
+    "VerbBare": ["play","trade","refresh","reassess","collect","optimize","rebalance","update","rotate","push","park"],
+    "Verb3s": ["Plays","Parks","Stands","Cuts","Pushes","Rotates","Trades","Tracks"],
+    "AdverbQuick": ["Fast","Now","Often","Soon","Today"],
+    "NounAnalytic": ["Field","Cycle","Ratio","Supply","Refresh","Mind","Collector","Dawn","Center","Epidemic","Spot","Parking Spot","Assumption","Update","Inflection","Profile","Metric","Scan","Stack","Ledger","Intake","Throughput","Variance","Sleeper","Parking","Focus"],
+    "NounEvent": ["Attack","Meeting","Launch","Push","Check","Delivery","Close"],
+    "TimeWord": ["Dawn","Noon","Close","End","Start","Sunrise"],
+    "Front": ["Front","Head","Top"],
+    "Center": ["Center","Middle","Focus"],
+    "AdjModern": ["Neon","Metric","Hot","Standing","Periodic","Early Morning","Close","Wonderful","Hyper","Midnight","Turbo","Lucky","Broken","Sticky"],
+    "ProperName": ["Bob","Chris","Pat","Max","Charlie","Jordan","Alex","Sam","Taylor"],
+    "NumberWord": ["Five","Seven","Nine","Ten","Twelve"],
+    "UnitShort": ["foot","sec","min","mile"],
+    "Acronym": ["FOV","DPS","APM","CPU","GPU","OPS"],
+    "ParticlePhrase": ["up top","out wide","down low","on site","in lane","at scale","in full"],
+    "RoleWord": ["Mid","Top","Jungle","Support","Main","Offlane"],
+    "ColorWord": ["Yellow","Cyan","Amber","Sapphire","Ivory","Graphite"],
+    "Better": ["Better","Quick","Must"]
+  },
+
+  "rules": {
+    "max_length": 32,
+    "reserved_names": ["Secretariat","American Pharoah","Man o' War"]
+  },
+
+  "rarity": {
+    "rare_singleton_chance": 0.20
+  },
+
+  "language_drift": {
+    "blend_chance": 0.12,
+    "mutate_chance": 0.10,
+    "max_mutations": 2
+  },
+
+  "forbidden_names": [
+    "Fishin' Karambwan","Maxxed Main","Mid only","Plays up top","Data Collector",
+    "Obsessed Hobbiest","Market Maker","Five-foot FOV","Blonda Civic","Dreammobile",
+    "Attack at Dawn","Early Morning Grump","Metric Mind","The Collector","Hot Ratio",
+    "Gold Supply","Plae","Close Parking Spot","Reassess Often","Neon Epidemic",
+    "We Play","Fat Chris","Babo Mouse","Sapph Inflection","Attention To",
+    "Finding Me Tho","Bob's Burgess","Front and Center","Update Cycle",
+    "Periodic Refresh","Scan the Field","Better Act Fast","Wonderful Yellow",
+    "Standing Sleeper","Heroic Assumption"
   ]
 }

@@ -5,6 +5,7 @@ from derby_game.database.connection import get_db_connection
 from datetime import datetime, timezone
 from copy import deepcopy
 from derby_game.config import BALANCE_CONFIG
+from derby_game.horse_name_generator import NameGenerator
 
 # --- Configuration ---
 # We will use this to generate names.
@@ -128,13 +129,8 @@ class Horse:
         
         # --- 3. Generate Name ---
         try:
-            with open(NAME_CONFIG_PATH, 'r') as f:
-                name_config = json.load(f)
-            
-            adjective = np.random.choice(name_config['adjectives'])
-            noun = np.random.choice(name_config['nouns'])
-            
-            name = f"{adjective} {noun}"
+            gen = NameGenerator(config_path=NAME_CONFIG_PATH)  # pass a seed=123 for determinism if you want
+            name = gen.generate()
         except Exception as e:
             print(f"Warning: Could not load horse names. Using default. Error: {e}")
             name = "Generic Horse"
