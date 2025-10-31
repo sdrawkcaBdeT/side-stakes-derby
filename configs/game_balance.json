@@ -3,6 +3,7 @@
     "daily_stable_fee": 100,
     "house_vig": 0.08,
     "training_fee": 450,
+    "claimer_fixed_price": 5000,
     "consumables": {
       "premium_feed": 250,
       "conditioning_supplement": 150
