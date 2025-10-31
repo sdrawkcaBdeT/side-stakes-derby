@@ -13,6 +13,7 @@ CREATE TABLE derby.trainers (
 CREATE TABLE derby.horses (
     horse_id SERIAL PRIMARY KEY,
     owner_id BIGINT REFERENCES derby.trainers(user_id),
+    is_bot BOOLEAN DEFAULT FALSE,
     name VARCHAR(255) NOT NULL,
     strategy VARCHAR(50) NOT NULL,             -- <-- ADDED
     min_preferred_distance INT NOT NULL,     -- <-- ADDED

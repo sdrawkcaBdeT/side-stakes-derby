@@ -38,6 +38,7 @@ class Horse:
         # All stats will be populated by load_from_db()
         self.name = ""
         self.owner_id = 0
+        self.is_bot = False
         self.birth_timestamp = None
         self.spd = 0
         self.sta = 0
@@ -47,6 +48,7 @@ class Horse:
         self.lck = 0
         self.hg_score = 0
         self.is_retired = False
+        self.in_training_until = None
         
         # Call the loader method
         self.load_from_db()
@@ -67,21 +69,23 @@ class Horse:
             
             if record:
                 # Adjust indices based on your *actual* final schema order
-                # (horse_id, owner_id, name, strategy, min_pref, max_pref, birth_ts, spd, sta, ...)
+                # (horse_id, owner_id, is_bot, name, strategy, min_pref, max_pref, birth_ts, spd, sta, ...)
                 self.owner_id = record[1]
-                self.name = record[2]
-                self.strategy = record[3]
-                self.min_preferred_distance = record[4]
-                self.max_preferred_distance = record[5]
-                self.birth_timestamp = record[6]
-                self.spd = record[7]
-                self.sta = record[8]
-                self.fcs = record[9]
-                self.grt = record[10]
-                self.cog = record[11]
-                self.lck = record[12]
-                self.hg_score = record[13]
-                self.is_retired = record[14]
+                self.is_bot = record[2]
+                self.name = record[3]
+                self.strategy = record[4]
+                self.min_preferred_distance = record[5]
+                self.max_preferred_distance = record[6]
+                self.birth_timestamp = record[7]
+                self.spd = record[8]
+                self.sta = record[9]
+                self.fcs = record[10]
+                self.grt = record[11]
+                self.cog = record[12]
+                self.lck = record[13]
+                self.hg_score = record[14]
+                self.is_retired = record[15]
+                self.in_training_until = record[16]
             else:
                 print(f"Warning: No horse found with ID {self.horse_id}")
                 
@@ -120,7 +124,7 @@ class Horse:
         return int(hg)
 
     @staticmethod
-    def generate_new_horse(owner_id):
+    def generate_new_horse(owner_id, *, is_bot=False):
         """
         Generates a new G-Grade horse with random stats, saves it to the DB,
         and returns the new horse's ID.
@@ -169,20 +173,20 @@ class Horse:
             with conn.cursor() as cur:
                 sql = """
                 INSERT INTO horses
-                (owner_id, name, strategy, min_preferred_distance, max_preferred_distance,
+                (owner_id, is_bot, name, strategy, min_preferred_distance, max_preferred_distance,
                  spd, sta, fcs, grt, cog, lck, hg_score)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING horse_id;
                 """
                 cur.execute(sql, (
-                    owner_id, name, strategy, min_pref, max_pref, # <-- Added fields
+                    owner_id, is_bot, name, strategy, min_pref, max_pref,
                     spd, sta, fcs, grt, cog, lck, hg_score
                 ))
 
                 new_horse_id = cur.fetchone()[0]
                 conn.commit()
 
-                print(f"Generated new horse: {name} (ID: {new_horse_id}), HG: {hg_score}, Strategy: {strategy}, PrefDist: {min_pref}-{max_pref}m")
+                print(f"Generated new horse: {name} (ID: {new_horse_id}), HG: {hg_score}, Strategy: {strategy}, PrefDist: {min_pref}-{max_pref}m, BotOwned: {is_bot}")
                 return new_horse_id
                 
         except Exception as e:

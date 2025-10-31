@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 from derby_game.database.connection import get_db_connection
 from derby_game.simulation import Horse
 from derby_game.config import BALANCE_CONFIG
+from derby_game.database import queries as derby_queries
 import os
 import sys
 
@@ -26,6 +27,8 @@ sys.path.append(other_project_path)
 DAILY_STABLE_FEE_PER_HORSE = BALANCE_CONFIG['economy']['daily_stable_fee']
 TASKS_RUN_HOUR = 4 # 4:00 AM UTC 
 SECONDS_PER_DAY = 86400
+MARKET_DB = derby_queries.market_db
+MARKET_ADMIN_ID = "derby_system"
 
 def _get_age_training_modifier(age_in_years):
     """
@@ -96,23 +99,58 @@ def _apply_stable_fees(cur):
     """
     print(f"  -> Applying daily stable fee of {DAILY_STABLE_FEE_PER_HORSE} CC per horse...")
     
-    # This query groups by trainer, counts their horses, and calculates the total fee
     cur.execute("""
-        UPDATE trainers
-        SET cc_balance = cc_balance - (horse_counts.total_fee)
-        FROM (
-            SELECT 
-                owner_id, 
-                COUNT(*) as num_horses,
-                (COUNT(*) * %s) as total_fee
-            FROM horses
-            WHERE is_retired = FALSE
-            GROUP BY owner_id
-        ) AS horse_counts
-        WHERE trainers.user_id = horse_counts.owner_id;
-    """, (DAILY_STABLE_FEE_PER_HORSE,))
-    
-    print(f"     ...Applied fees to {cur.rowcount} trainers.")
+        SELECT h.owner_id, t.is_bot, COUNT(*) as num_horses
+        FROM horses h
+        JOIN trainers t ON h.owner_id = t.user_id
+        WHERE h.is_retired = FALSE AND h.owner_id IS NOT NULL
+        GROUP BY h.owner_id, t.is_bot;
+    """)
+    trainer_rows = cur.fetchall()
+
+    if not trainer_rows:
+        print("     ...No trainers currently own active horses.")
+        return
+
+    trainers_charged = 0
+    for owner_id, is_bot, num_horses in trainer_rows:
+        if not owner_id:
+            continue
+
+        total_fee = int(num_horses * DAILY_STABLE_FEE_PER_HORSE)
+
+        # Ensure trainer record exists
+        cur.execute(
+            "INSERT INTO trainers (user_id, is_bot) VALUES (%s, %s) ON CONFLICT (user_id) DO NOTHING;",
+            (owner_id, is_bot)
+        )
+
+        new_balance_value = None
+        if not is_bot and MARKET_DB:
+            try:
+                new_balance_value = MARKET_DB.execute_admin_removal(
+                    admin_id=MARKET_ADMIN_ID,
+                    target_id=str(owner_id),
+                    amount=total_fee
+                )
+            except Exception as err:
+                print(f"     !!! Failed to charge stable fee for trainer {owner_id}: {err}")
+                new_balance_value = None
+
+        if new_balance_value is not None:
+            cur.execute(
+                "UPDATE trainers SET cc_balance = %s WHERE user_id = %s;",
+                (int(new_balance_value), owner_id)
+            )
+        else:
+            cur.execute(
+                "UPDATE trainers SET cc_balance = cc_balance - %s WHERE user_id = %s;",
+                (total_fee, owner_id)
+            )
+
+        trainers_charged += 1
+
+    print(f"     ...Applied fees to {trainers_charged} trainers.")
     
 def _process_training_queue(cur):
     """
@@ -177,13 +215,26 @@ def _process_training_queue(cur):
                 f"**Training Complete for {horse.name} ({stat_name})!**\n"
                 f"> **Outcome:** {roll_details['outcome']}\n"
             )
+            gain_ranges = BALANCE_CONFIG['training']['roll_gains']
+            range_lookup = {
+                "Critical Success": gain_ranges['crit_success'],
+                "Standard Success": gain_ranges['standard_success']
+            }
+            roll_range = range_lookup.get(roll_details['outcome'])
+            range_text = f" (range {roll_range[0]}-{roll_range[1]})" if roll_range else ""
+
             if roll_details['lck_triggered']:
-                notification_message += f"> **LUCK triggered!** (Rolls: {roll_details['roll_1']}, {roll_details['roll_2']})\n"
+                notification_message += (
+                    f"> **LUCK triggered!** Rolls: {roll_details['roll_1']}, {roll_details['roll_2']}{range_text}\n"
+                )
             else:
-                notification_message += f"> **Roll:** {roll_details['roll_1']}\n"
-            
+                notification_message += f"> **Roll:** {roll_details['roll_1']}{range_text}\n"
+
             if base_gain > 0:
-                notification_message += f"> **Age Modifier (Age {horse.age_in_years}):** {age_mod*100:+.0f}%\n"
+                age_bonus = final_gain - base_gain
+                notification_message += (
+                    f"> **Age Modifier (Age {horse.age_in_years}):** {age_bonus:+d} ({age_mod*100:+.0f}%)\n"
+                )
             
             if final_gain > 0:
                 notification_message += f"> **Final Gain:** `+{final_gain} {stat_name}` (New Total: {new_stat})\n"

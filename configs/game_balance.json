@@ -37,6 +37,7 @@
     "lck": 0.5
   },
   "training": {
+    "session_duration_hours": 16,
     "roll_chances": {
       "crit_success": 0.03,
       "standard_success": 0.65,

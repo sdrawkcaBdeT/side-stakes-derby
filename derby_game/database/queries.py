@@ -1,18 +1,19 @@
 from derby_game.database.connection import get_db_connection
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from derby_game.config import BALANCE_CONFIG
 import traceback
 import json
 import os
 import sys
 
-# Get the path to the current script's directory (side-stakes-derby/)
+# Get the path to the current script's directory (side-stakes-derby/derby_game/database/)
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Get the path to the parent directory (the one containing both projects)
-parent_dir = os.path.dirname(current_dir)
-# Add the path to the 'prettyDerbyClubAnalysis' project to sys.path
-other_project_path = os.path.join(parent_dir, 'prettyDerbyClubAnalysis')
-sys.path.append(other_project_path)
+# Step up to the side-stakes-derby root
+project_root = os.path.dirname(os.path.dirname(current_dir))
+# The sibling repository lives beside side-stakes-derby
+other_project_path = os.path.join(os.path.dirname(project_root), 'prettyDerbyClubAnalysis')
+if other_project_path not in sys.path:
+    sys.path.append(other_project_path)
 
 # --- Race Queries ---
 try:
@@ -20,6 +21,9 @@ try:
 except ImportError:
     print("FATAL ERROR: Could not import 'market.database'. Make sure 'prettyDerbyClubAnalysis' project is accessible.")
     market_db = None
+TRAINABLE_STATS = {"spd", "sta", "fcs", "grt", "cog"}
+TRAINING_DURATION_HOURS = BALANCE_CONFIG['training'].get('session_duration_hours', 16)
+TRAINING_FEE = BALANCE_CONFIG['economy']['training_fee']
 
 def get_available_races(tier_filter: str = None):
     """
@@ -153,6 +157,232 @@ def get_horses_in_race(race_id: int):
         if conn:
             conn.close()
     return horses
+
+# --- Trainer Helpers ---
+
+def ensure_trainer_record(user_id: int, *, is_bot: bool = False):
+    """
+    Ensures there is a trainer row for the supplied user ID.
+    Returns a dict with trainer data or None if something goes wrong.
+    """
+    conn = None
+    trainer = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO trainers (user_id, is_bot)
+                VALUES (%s, %s)
+                ON CONFLICT (user_id) DO NOTHING;
+                """,
+                (user_id, is_bot)
+            )
+            cur.execute(
+                "SELECT user_id, is_bot, cc_balance, prestige, stable_slots FROM trainers WHERE user_id = %s",
+                (user_id,)
+            )
+            row = cur.fetchone()
+            if row:
+                trainer = {
+                    "user_id": row[0],
+                    "is_bot": row[1],
+                    "cc_balance": row[2],
+                    "prestige": row[3],
+                    "stable_slots": row[4]
+                }
+    except Exception as e:
+        print(f"Error ensuring trainer record for {user_id}: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return trainer
+
+def get_trainer_horses(user_id: int, *, include_retired: bool = False):
+    """
+    Fetches all horses owned by a specific trainer.
+    """
+    conn = None
+    horses = []
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            sql = """
+                SELECT horse_id, name, strategy, spd, sta, fcs, grt, cog, lck,
+                       hg_score, is_retired, in_training_until
+                FROM horses
+                WHERE owner_id = %s
+            """
+            params = [user_id]
+            if not include_retired:
+                sql += " AND is_retired = FALSE"
+            sql += " ORDER BY horse_id"
+
+            cur.execute(sql, params)
+            rows = cur.fetchall()
+            for row in rows:
+                horses.append({
+                    "horse_id": row[0],
+                    "name": row[1],
+                    "strategy": row[2],
+                    "spd": row[3],
+                    "sta": row[4],
+                    "fcs": row[5],
+                    "grt": row[6],
+                    "cog": row[7],
+                    "lck": row[8],
+                    "hg_score": row[9],
+                    "is_retired": row[10],
+                    "in_training_until": row[11]
+                })
+    except Exception as e:
+        print(f"Error getting horses for trainer {user_id}: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return horses
+
+def start_training_session(trainer_id: int, horse_id: int, stat: str):
+    """
+    Attempts to queue a training session for the requested stat.
+    Returns (success: bool, message: str).
+    """
+    stat_code = (stat or "").lower()
+    if stat_code not in TRAINABLE_STATS:
+        return False, "Invalid stat. Choose from SPD, STA, FCS, GRT, or COG."
+
+    conn = None
+    now_utc = datetime.now(timezone.utc)
+    finish_time = now_utc + timedelta(hours=TRAINING_DURATION_HOURS)
+    training_cost = TRAINING_FEE
+
+    try:
+        conn = get_db_connection()
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            # Lock the horse row to avoid concurrent training starts
+            cur.execute(
+                """
+                SELECT owner_id, is_retired, in_training_until
+                FROM horses
+                WHERE horse_id = %s
+                FOR UPDATE;
+                """,
+                (horse_id,)
+            )
+            horse_row = cur.fetchone()
+            if not horse_row:
+                return False, "Horse not found."
+
+            horse_owner, is_retired, in_training_until = horse_row
+            if horse_owner != trainer_id:
+                return False, "You do not own this horse."
+            if is_retired:
+                return False, "Retired horses cannot be trained."
+            if in_training_until and in_training_until > now_utc:
+                return False, "This horse is already in training."
+
+            # Ensure trainer exists and lock the row
+            cur.execute(
+                """
+                SELECT user_id, is_bot, cc_balance
+                FROM trainers
+                WHERE user_id = %s
+                FOR UPDATE;
+                """,
+                (trainer_id,)
+            )
+            trainer_row = cur.fetchone()
+            if not trainer_row:
+                cur.execute(
+                    "INSERT INTO trainers (user_id, is_bot) VALUES (%s, FALSE)",
+                    (trainer_id,)
+                )
+                cur.execute(
+                    """
+                    SELECT user_id, is_bot, cc_balance
+                    FROM trainers
+                    WHERE user_id = %s
+                    FOR UPDATE;
+                    """,
+                    (trainer_id,)
+                )
+                trainer_row = cur.fetchone()
+
+            is_bot_owner = trainer_row[1]
+            local_balance = trainer_row[2] or 0
+
+            # Deduct CC using shared market database when available
+            new_remote_balance = None
+            if not is_bot_owner and market_db:
+                item_name = f"Training Session: {stat_code.upper()}"
+                try:
+                    new_remote_balance = market_db.execute_purchase_transaction(
+                        actor_id=str(trainer_id),
+                        item_name=item_name,
+                        cost=float(training_cost),
+                        upgrade_tier=None
+                    )
+                except Exception as err:
+                    print(f"Error executing shared purchase transaction: {err}")
+                    new_remote_balance = None
+
+                if new_remote_balance is None:
+                    return False, "Training failed. Insufficient CC or market system unavailable."
+            else:
+                if local_balance < training_cost:
+                    return False, "Training failed. Insufficient CC balance."
+
+            # Update local trainer balance
+            if new_remote_balance is not None:
+                try:
+                    remote_balance_int = int(round(float(new_remote_balance)))
+                except (TypeError, ValueError):
+                    remote_balance_int = local_balance - training_cost
+                cur.execute(
+                    "UPDATE trainers SET cc_balance = %s WHERE user_id = %s",
+                    (remote_balance_int, trainer_id)
+                )
+            else:
+                cur.execute(
+                    "UPDATE trainers SET cc_balance = cc_balance - %s WHERE user_id = %s",
+                    (training_cost, trainer_id)
+                )
+
+            # Prevent duplicate queue entries
+            cur.execute(
+                "SELECT queue_id FROM training_queue WHERE horse_id = %s",
+                (horse_id,)
+            )
+            if cur.fetchone():
+                return False, "This horse already has a training session queued."
+
+            cur.execute(
+                """
+                INSERT INTO training_queue (horse_id, stat_to_train, finish_time)
+                VALUES (%s, %s, %s)
+                RETURNING queue_id;
+                """,
+                (horse_id, stat_code, finish_time)
+            )
+
+            cur.execute(
+                "UPDATE horses SET in_training_until = %s WHERE horse_id = %s",
+                (finish_time, horse_id)
+            )
+
+        conn.commit()
+        readable_finish = finish_time.strftime("%Y-%m-%d %H:%M UTC")
+        return True, f"Training queued! {stat_code.upper()} session completes at {readable_finish}."
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"Error starting training session for trainer {trainer_id}, horse {horse_id}: {e}")
+        return False, "An unexpected error occurred while starting training. Please try again."
+    finally:
+        if conn:
+            conn.close()
 
 # --- Claiming Functions ---
 
