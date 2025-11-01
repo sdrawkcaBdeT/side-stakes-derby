@@ -3,10 +3,13 @@ import random
 import numpy as np
 import math
 from datetime import datetime, timezone, timedelta
+from decimal import Decimal, ROUND_HALF_UP
 from derby_game.database.connection import get_db_connection
-from derby_game.simulation import Horse
+from derby_game.simulation import Horse, Race, Bookie
 from derby_game.config import BALANCE_CONFIG
 from derby_game.database import queries as derby_queries
+from derby_game.bot_bettors import BotBettingManager
+from derby_game import betting_service
 import os
 import sys
 
@@ -29,6 +32,40 @@ TASKS_RUN_HOUR = 4 # 4:00 AM UTC
 SECONDS_PER_DAY = 86400
 MARKET_DB = derby_queries.market_db
 MARKET_ADMIN_ID = "derby_system"
+BOT_BETTING_MANAGER = BotBettingManager()
+MARKET_RACES_TABLE = "derby.market_races"
+MARKET_RACE_HORSES_TABLE = "derby.market_race_horses"
+
+def _set_market_race_status(race_id: int, status: str):
+    if not MARKET_DB:
+        return
+    try:
+        MARKET_DB.update_race_status(race_id, status)
+    except Exception as err:
+        print(f"  -> Warning: failed to set market race {race_id} status to '{status}': {err}")
+
+def _to_decimal(value):
+    if value is None:
+        return Decimal(0)
+    if isinstance(value, Decimal):
+        return value
+    return Decimal(str(value))
+
+def _decimal_to_int(value):
+    return int(_to_decimal(value).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+
+def _safe_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+def _as_aware(dt):
+    if dt is None:
+        return None
+    if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 def _get_age_training_modifier(age_in_years):
     """
@@ -100,11 +137,11 @@ def _apply_stable_fees(cur):
     print(f"  -> Applying daily stable fee of {DAILY_STABLE_FEE_PER_HORSE} CC per horse...")
     
     cur.execute("""
-        SELECT h.owner_id, t.is_bot, COUNT(*) as num_horses
+        SELECT h.owner_id, t.is_bot, t.economy_id, COUNT(*) as num_horses
         FROM horses h
         JOIN trainers t ON h.owner_id = t.user_id
         WHERE h.is_retired = FALSE AND h.owner_id IS NOT NULL
-        GROUP BY h.owner_id, t.is_bot;
+        GROUP BY h.owner_id, t.is_bot, t.economy_id;
     """)
     trainer_rows = cur.fetchall()
 
@@ -113,7 +150,7 @@ def _apply_stable_fees(cur):
         return
 
     trainers_charged = 0
-    for owner_id, is_bot, num_horses in trainer_rows:
+    for owner_id, is_bot, economy_id, num_horses in trainer_rows:
         if not owner_id:
             continue
 
@@ -125,28 +162,40 @@ def _apply_stable_fees(cur):
             (owner_id, is_bot)
         )
 
-        new_balance_value = None
-        if not is_bot and MARKET_DB:
+        if MARKET_DB:
             try:
-                new_balance_value = MARKET_DB.execute_admin_removal(
+                target_id = economy_id or str(owner_id)
+                result = MARKET_DB.execute_admin_removal(
                     admin_id=MARKET_ADMIN_ID,
-                    target_id=str(owner_id),
+                    target_id=target_id,
                     amount=total_fee
                 )
+                if result is None:
+                    if is_bot:
+                        subsidy_amount = max(total_fee * 5, total_fee)
+                        try:
+                            MARKET_DB.execute_admin_award(
+                                admin_id=MARKET_ADMIN_ID,
+                                target_id=target_id,
+                                amount=subsidy_amount
+                            )
+                            result = MARKET_DB.execute_admin_removal(
+                                admin_id=MARKET_ADMIN_ID,
+                                target_id=target_id,
+                                amount=total_fee
+                            )
+                        except Exception as err:
+                            print(f"     !!! Failed to subsidize trainer {owner_id}: {err}")
+                            result = None
+                    if result is None:
+                        print(f"     !!! Failed to charge stable fee for trainer {owner_id}: insufficient funds or error.")
+                        continue
             except Exception as err:
                 print(f"     !!! Failed to charge stable fee for trainer {owner_id}: {err}")
-                new_balance_value = None
-
-        if new_balance_value is not None:
-            cur.execute(
-                "UPDATE trainers SET cc_balance = %s WHERE user_id = %s;",
-                (int(new_balance_value), owner_id)
-            )
+                continue
         else:
-            cur.execute(
-                "UPDATE trainers SET cc_balance = cc_balance - %s WHERE user_id = %s;",
-                (total_fee, owner_id)
-            )
+            print("     !!! Stable fee charge skipped (market DB unavailable).")
+            continue
 
         trainers_charged += 1
 
@@ -265,6 +314,461 @@ def _process_training_queue(cur):
 
     print(f"     ...Processed {processed_count} training jobs.")
 
+
+def _auto_schedule_training():
+    now = datetime.now(timezone.utc)
+    candidates = derby_queries.get_auto_training_candidates(now)
+    if not candidates:
+        return
+
+    print(f"  -> Auto-scheduling training for {len(candidates)} horses.")
+    for candidate in candidates:
+        trainer_id = candidate["owner_id"]
+        horse_id = candidate["horse_id"]
+        stat_code = candidate["stat_code"]
+        if candidate.get("is_bot"):
+            stat_code = random.choice(list(derby_queries.TRAINABLE_STATS))
+            derby_queries.set_training_plan(horse_id, stat_code)
+        success, message, finish_time = derby_queries.start_training_session(trainer_id, horse_id, stat_code)
+        if not success:
+            derby_queries.mark_training_plan_attempt(horse_id)
+            print(f"     !! Failed to auto-train horse {horse_id} (trainer {trainer_id}): {message}")
+        else:
+            derby_queries.mark_training_plan_attempt(horse_id)
+            print(f"     -> Queued auto-training for horse {horse_id} ({stat_code.upper()}) finishing at {finish_time}.")
+
+def _get_racing_config():
+    return BALANCE_CONFIG.get('racing', {})
+
+def _fill_race_with_bots(race_info, field_size):
+    """
+    Ensures the pending race has enough bot horses entered.
+    """
+    race_id = race_info['race_id']
+    current_entries = derby_queries.list_race_entries(race_id)
+    missing = field_size - len(current_entries)
+    if missing <= 0:
+        return 0
+
+    available = derby_queries.get_available_bot_horses(race_info['tier'], limit=missing)
+    added = 0
+    for horse in available:
+        entry = derby_queries.add_race_entry(
+            race_id,
+            horse['horse_id'],
+            entry_fee=race_info.get('entry_fee', 0)
+        )
+        if entry:
+            added += 1
+    if added < missing:
+        print(f"  -> Warning: race {race_id} still short by {missing - added} entries (Tier {race_info['tier']}).")
+    elif added:
+        print(f"  -> Filled race {race_id} with {added} bot entries.")
+    return added
+
+
+class _MarketHorseAdapter:
+    __slots__ = ("name", "strategy_name", "stats")
+
+    def __init__(self, horse):
+        self.name = horse.name
+        self.strategy_name = horse.strategy
+        self.stats = {
+            "spd": horse.spd,
+            "sta": horse.sta,
+            "fcs": horse.fcs,
+            "grt": horse.grt,
+            "cog": horse.cog,
+            "lck": horse.lck,
+        }
+
+
+def _register_market_race(race_obj):
+    if not MARKET_DB:
+        return
+    conn = MARKET_DB.get_connection()
+    if not conn:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT 1 FROM {MARKET_RACES_TABLE} WHERE race_id = %s;",
+                (race_obj.race_id,)
+            )
+            exists = cur.fetchone() is not None
+    finally:
+        conn.close()
+    if exists:
+        return
+    horses = [_MarketHorseAdapter(h) for h in race_obj.horses]
+    try:
+        MARKET_DB.create_race(race_obj.race_id, race_obj.distance, horses)
+    except Exception as err:
+        print(f"  -> Failed to register race {race_obj.race_id} with market DB: {err}")
+
+def _race_scheduler_tick():
+    """
+    Maintains the pipeline of scheduled races and transitions them through lifecycle.
+    """
+    racing_cfg = _get_racing_config()
+    if not racing_cfg:
+        return
+
+    now = datetime.now(timezone.utc)
+    pending_lead = timedelta(hours=racing_cfg.get('pending_lead_hours', 24))
+    betting_window = timedelta(minutes=racing_cfg.get('betting_window_minutes', 10))
+    race_spacing = timedelta(minutes=racing_cfg.get('race_spacing_minutes', 60))
+    lock_lead = timedelta(minutes=racing_cfg.get('lock_lead_minutes', 1))
+    min_pending = racing_cfg.get('min_pending_races', 3)
+    field_size_map = racing_cfg.get('field_size', {})
+    entry_fee_map = racing_cfg.get('entry_fee', {})
+    purse_map = racing_cfg.get('purse', {})
+    distance_map = racing_cfg.get('distance_options', {})
+
+    races = derby_queries.get_races_by_status(['pending', 'open'])
+    pending_races = [r for r in races if r['status'] == 'pending']
+
+    # Ensure existing pending races are populated and transition when ready
+    for race in pending_races:
+        tier = race['tier']
+        field_size = field_size_map.get(tier, 10)
+
+        start_time = _as_aware(race.get('start_time'))
+        if start_time is None:
+            start_time = now + pending_lead
+            derby_queries.update_race_start_time(race['race_id'], start_time)
+            race['start_time'] = start_time
+        else:
+            race['start_time'] = start_time
+
+        _fill_race_with_bots(race, field_size)
+
+        start_time = _as_aware(race['start_time'])
+        if start_time and start_time - betting_window <= now:
+            if derby_queries.update_race_status(race['race_id'], 'open'):
+                race['status'] = 'open'
+                print(f"  -> Race {race['race_id']} (Tier {tier}) is now OPEN.")
+                race_obj = Race(race['race_id'], verbose=False)
+                _register_market_race(race_obj)
+                if race_obj.horses:
+                    bookie = Bookie(race_obj)
+                    bookie.run_monte_carlo(simulations=betting_service.MONTE_CARLO_SIMULATIONS)
+                    lock_time = start_time - lock_lead if start_time else datetime.now(timezone.utc)
+                    if lock_time <= now:
+                        lock_time = now + timedelta(seconds=5)
+                    open_time = start_time - betting_window if start_time else None
+                    BOT_BETTING_MANAGER.schedule_betting_session(
+                        race_obj,
+                        bookie,
+                        lock_time,
+                        open_time=open_time,
+                        betting_window=betting_window,
+                    )
+                _set_market_race_status(race['race_id'], 'open')
+
+    active_pending = [r for r in pending_races if r['status'] == 'pending']
+
+    # Create new pending races if pipeline is below target
+    if min_pending > 0:
+        existing_starts = sorted(
+            [_as_aware(r['start_time']) for r in active_pending if r['start_time']]
+        )
+        next_start = existing_starts[-1] + race_spacing if existing_starts else now + pending_lead
+
+        while len(active_pending) < min_pending:
+            tier = 'G'  # Tier rollout starts with Claimers
+            field_size = field_size_map.get(tier, 10)
+            entry_fee = entry_fee_map.get(tier, 0)
+            purse = purse_map.get(tier, 0)
+            distance_options = distance_map.get(tier, [1600])
+            distance = random.choice(distance_options)
+
+            new_race = derby_queries.create_race(
+                tier,
+                distance,
+                entry_fee=entry_fee,
+                purse=purse,
+                start_time=next_start,
+                status='pending'
+            )
+            if not new_race:
+                print("!!! Failed to create a new pending race. Scheduler will retry next tick.")
+                break
+
+            print(f"  -> Scheduled new Tier {tier} race #{new_race['race_id']} for {next_start}.")
+            _fill_race_with_bots(new_race, field_size)
+            active_pending.append(new_race)
+            next_start = next_start + race_spacing
+
+    # Handle open races approaching lock time
+    lock_lead = timedelta(minutes=racing_cfg.get('lock_lead_minutes', 1))
+    open_races = derby_queries.get_races_by_status(['open'])
+    for race in open_races:
+        start_time = _as_aware(race.get('start_time'))
+        if start_time and start_time - lock_lead <= now < start_time:
+            if derby_queries.update_race_status(race['race_id'], 'locked'):
+                print(f"  -> Race {race['race_id']} locked for betting (Tier {race['tier']}).")
+                BOT_BETTING_MANAGER.clear_session(race['race_id'])
+                _set_market_race_status(race['race_id'], 'locked')
+
+    # Run races whose start time has arrived
+    ready_ids = []
+    for race in open_races:
+        start_time = _as_aware(race.get('start_time'))
+        if start_time and start_time <= now:
+            ready_ids.append(race['race_id'])
+
+    locked_races = derby_queries.get_races_by_status(['locked'])
+    for race in locked_races:
+        start_time = _as_aware(race.get('start_time'))
+        if start_time and start_time <= now:
+            ready_ids.append(race['race_id'])
+
+    for race_id in dict.fromkeys(ready_ids):
+        _run_race_lifecycle(race_id, racing_cfg)
+
+def _run_race_lifecycle(race_id: int, racing_cfg: dict):
+    race = derby_queries.get_race_details(race_id)
+    if not race:
+        BOT_BETTING_MANAGER.clear_session(race_id)
+        return
+
+    status = (race['status'] or '').lower()
+    if status == 'finished':
+        BOT_BETTING_MANAGER.clear_session(race_id)
+        return
+
+    entries = derby_queries.list_race_entries(race_id)
+    if not entries:
+        print(f"  -> Race {race_id} cancelled: no entries available.")
+        BOT_BETTING_MANAGER.clear_session(race_id)
+        derby_queries.update_race_status(race_id, 'finished')
+        _set_market_race_status(race_id, 'cancelled')
+        return
+
+    derby_queries.update_race_status(race_id, 'running')
+    _set_market_race_status(race_id, 'running')
+    print(f"\n=== Running Race #{race_id} ({race['tier']} Tier, {race['distance']}m) ===")
+    race_sim = Race(race_id)
+    if not race_sim.horses:
+        print(f"  -> Race {race_id} cancelled: failed to load horses.")
+        derby_queries.clear_race_entries(race_id)
+        BOT_BETTING_MANAGER.clear_session(race_id)
+        derby_queries.update_race_status(race_id, 'finished')
+        _set_market_race_status(race_id, 'cancelled')
+        return
+
+    finishers = race_sim.run_simulation(silent=False)
+    if not finishers:
+        print(f"  -> Race {race_id} produced no results. Marking as finished.")
+        derby_queries.clear_race_entries(race_id)
+        BOT_BETTING_MANAGER.clear_session(race_id)
+        derby_queries.update_race_status(race_id, 'finished')
+        _set_market_race_status(race_id, 'finished')
+        return
+
+    payout_map = _calculate_purse_payouts(race, finishers, racing_cfg)
+
+    derby_queries.clear_race_results(race_id)
+    for idx, horse in enumerate(finishers, start=1):
+        derby_queries.record_race_result(
+            race_id,
+            horse.horse_id,
+            idx,
+            payout_map.get(horse.horse_id, 0)
+        )
+    derby_queries.set_race_winner(race_id, finishers[0].horse_id)
+    _distribute_purse_to_owners(race, finishers, payout_map)
+    derby_queries.clear_race_entries(race_id)
+
+    _settle_race_bets(race, race_sim.horses, finishers, payout_map)
+    _notify_race_results(race, finishers, payout_map)
+
+    derby_queries.update_race_status(race_id, 'finished')
+    BOT_BETTING_MANAGER.clear_session(race_id)
+    betting_service.clear_live_odds_cache(race_id)
+    _set_market_race_status(race_id, 'finished')
+    print(f"=== Race #{race_id} complete ===\n")
+
+def _calculate_purse_payouts(race: dict, finishers, racing_cfg: dict):
+    purse = int(race.get('purse') or 0)
+    payouts = {}
+    if purse <= 0 or not finishers:
+        return payouts
+
+    default_shares = [Decimal('0.60'), Decimal('0.20'), Decimal('0.10'), Decimal('0.07'), Decimal('0.03')]
+    config_shares = racing_cfg.get('purse_shares')
+    if config_shares:
+        shares = [Decimal(str(share)) for share in config_shares]
+    else:
+        shares = default_shares
+
+    total_decimal = Decimal(purse)
+    allocated = 0
+    limit = min(len(finishers), len(shares))
+
+    for idx in range(limit):
+        horse = finishers[idx]
+        if idx == limit - 1:
+            payout = purse - allocated
+        else:
+            payout = _decimal_to_int(total_decimal * shares[idx])
+            payout = max(0, min(payout, purse - allocated))
+        payouts[horse.horse_id] = payout
+        allocated += payout
+
+    # If there are more finishers than shares, ensure they are recorded with zero payout.
+    for horse in finishers:
+        payouts.setdefault(horse.horse_id, 0)
+
+    return payouts
+
+def _distribute_purse_to_owners(race: dict, finishers, payout_map):
+    total_paid = 0
+    for horse in finishers:
+        payout = int(payout_map.get(horse.horse_id, 0) or 0)
+        if payout <= 0:
+            continue
+        owner_id = horse.owner_id
+        if not owner_id or not MARKET_DB:
+            continue
+        try:
+            target_id = derby_queries.get_trainer_economy_id(owner_id)
+            MARKET_DB.execute_admin_award(
+                admin_id=MARKET_ADMIN_ID,
+                target_id=target_id,
+                amount=payout
+            )
+            total_paid += payout
+        except Exception as err:
+            print(f"  -> Failed to distribute purse ({payout} CC) to trainer {owner_id}: {err}")
+    if total_paid:
+        print(f"  -> Distributed {total_paid:,} CC in purse payouts.")
+
+def _settle_race_bets(race: dict, horses, finishers, payout_map):
+    if not MARKET_DB:
+        print("  -> Market database unavailable. Skipping bet settlement.")
+        return
+
+    bets = derby_queries.get_market_bets_since(race['race_id'], last_bet_id=0)
+    if not bets:
+        print("  -> No wagers to settle for this race.")
+        return
+
+    horse_lookup = {horse.name: horse for horse in horses}
+    placement_map = {horse.horse_id: idx + 1 for idx, horse in enumerate(finishers)}
+
+    for bet in bets:
+        bet_id = bet["bet_id"]
+        bettor_id = str(bet["bettor_id"])
+        horse_name = bet["horse_name"]
+        amount = bet["amount"]
+        odds = bet["locked_in_odds"]
+        if derby_queries.is_bet_settled(bet_id):
+            continue
+
+        horse = horse_lookup.get(horse_name)
+        if not horse:
+            target_lower = (horse_name or "").lower()
+            for name, candidate in horse_lookup.items():
+                if name.lower() == target_lower:
+                    horse = candidate
+                    break
+
+        horse_id = horse.horse_id if horse else None
+        stake_dec = _to_decimal(amount)
+        stake_value = _decimal_to_int(stake_dec)
+        odds_dec = _to_decimal(odds)
+        payout_total = 0
+        is_winner = horse is not None and placement_map.get(horse_id) == 1
+
+        if is_winner and stake_value > 0:
+            try:
+                payout_total = _decimal_to_int(Decimal(stake_value) * (Decimal(1) + odds_dec))
+                details = {
+                    "race_id": race["race_id"],
+                    "horse_id": horse_id,
+                    "horse_name": horse_name,
+                    "bet_type": "WIN",
+                    "locked_odds": float(odds_dec),
+                    "source": "bot" if bettor_id.startswith("derby_bot_") else "player",
+                    "settlement": True,
+                }
+                result_balance = MARKET_DB.execute_gambling_transaction(
+                    actor_id=bettor_id,
+                    game_name=f"Derby Race #{race['race_id']}",
+                    bet_amount=0.0,
+                    winnings=float(payout_total),
+                    details=details,
+                )
+                if result_balance is None:
+                    print(f"  -> Failed to award winnings for bet {bet_id} ({bettor_id}).")
+                    payout_total = 0
+                    is_winner = False
+            except Exception as err:
+                print(f"  -> Failed to award winnings for bet {bet_id} ({bettor_id}): {err}")
+                payout_total = 0
+                is_winner = False
+
+        derby_queries.record_bet_settlement(
+            bet_id,
+            race['race_id'],
+            bettor_id,
+            horse_id,
+            stake_value,
+            float(odds_dec),
+            payout_total
+        )
+
+        bettor_user_id = _safe_int(bettor_id)
+        display_name = horse.name if horse else horse_name
+        if bettor_user_id and display_name:
+            if is_winner and payout_total > 0:
+                derby_queries.add_notification(
+                    bettor_user_id,
+                    f"💰 Your bet on {display_name} won Race #{race['race_id']}! Payout: {payout_total:,} CC."
+                )
+            elif not is_winner:
+                derby_queries.add_notification(
+                    bettor_user_id,
+                    f"💸 Your bet on {display_name} lost Race #{race['race_id']}."
+                )
+
+def _notify_race_results(race: dict, finishers, payout_map):
+    if not finishers:
+        return
+
+    summary_lines = []
+    for idx, horse in enumerate(finishers[:5], start=1):
+        payout = payout_map.get(horse.horse_id, 0)
+        line = f"{_ordinal(idx)} - {horse.name}"
+        if payout > 0:
+            line += f" ({payout:,} CC)"
+        summary_lines.append(line)
+
+    summary_text = "\n".join(summary_lines)
+    print(f"  -> Results:\n{summary_text}")
+
+    for idx, horse in enumerate(finishers, start=1):
+        owner_id = horse.owner_id
+        if not owner_id:
+            continue
+        payout = payout_map.get(horse.horse_id, 0)
+        message = (
+            f"🏁 Your horse **{horse.name}** finished {_ordinal(idx)} in Race #{race['race_id']} "
+            f"({race['tier']} Tier, {race['distance']}m)."
+        )
+        if payout > 0:
+            message += f" Payout: {payout:,} CC."
+        derby_queries.add_notification(owner_id, message)
+
+def _ordinal(value: int) -> str:
+    if 10 <= value % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(value % 10, 'th')
+    return f"{value}{suffix}"
+
 def run_frequent_tasks():
     """
     Master function for all tasks that run frequently (e.g., every minute).
@@ -275,8 +779,6 @@ def run_frequent_tasks():
         conn = get_db_connection()
         with conn.cursor() as cur:
             _process_training_queue(cur)
-            # We will add race creation/betting here later
-        
         conn.commit()
     except Exception as e:
         if conn:
@@ -285,6 +787,16 @@ def run_frequent_tasks():
     finally:
         if conn:
             conn.close()
+
+    try:
+        _auto_schedule_training()
+    except Exception as auto_err:
+        print(f"!!! ERROR during auto-training scheduling: {auto_err}")
+
+    try:
+        _race_scheduler_tick()
+    except Exception as scheduler_error:
+        print(f"!!! ERROR in race scheduler: {scheduler_error}")
 
 def _apply_stat_decay(cur):
     """

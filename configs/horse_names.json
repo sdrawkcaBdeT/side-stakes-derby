@@ -1,41 +1,82 @@
 {
   "tiers": {
-    "canon": {
-      "weight": 0.35,
-      "patterns": [
-        "[CanonWord] [AbstractWord]",
-        "[CanonWord] of [CanonWord]"
-      ]
-    },
-    "combo": {
-      "weight": 0.25,
-      "patterns": [
-        "[Adjective] [Noun]"
-      ]
-    },
-    "hybrid": {
-      "weight": 0.10,
-      "patterns": [
-        "[Adjective] [CanonWord]"
-      ]
-    },
-    "modern_phrase": {
-      "weight": 0.30,
-      "patterns": [
-        "[VerbImp] the [NounAnalytic]",
-        "[Better] [VerbImp] [AdverbQuick]",
-        "[NounEvent] at [TimeWord]",
-        "[Front] and [Center]",
-        "[AdjModern] [NounAnalytic]",
-        "[ProperName]'s [NounAnalytic]",
-        "[NumberWord]-[UnitShort] [Acronym]",
-        "[Verb3s] [ParticlePhrase]",
-        "[RoleWord] only",
-        "We [VerbBare]",
-        "[AdjModern] [ColorWord]"
-      ]
-    }
+  "canon": {
+    "weight": 0.30,
+    "patterns": [
+      "[CanonWord] [AbstractWord]",
+      "[CanonWord] of [CanonWord]"
+    ]
   },
+  "combo": {
+    "weight": 0.22,
+    "patterns": [
+      "[Adjective] [Noun]"
+    ]
+  },
+  "hybrid": {
+    "weight": 0.08,
+    "patterns": [
+      "[Adjective] [CanonWord]"
+    ]
+  },
+  "modern_phrase": {
+    "weight": 0.18,
+    "patterns": [
+      "[VerbImp] the [NounAnalytic]",
+      "[Better] [VerbImp] [AdverbQuick]",
+      "[NounEvent] at [TimeWord]",
+      "[Front] and [Center]",
+      "[AdjModern] [NounAnalytic]",
+      "[ProperName]'s [NounAnalytic]",
+      "[NumberWord]-[UnitShort] [Acronym]",
+      "[Verb3s] [ParticlePhrase]",
+      "[RoleWord] only",
+      "We [VerbBare]",
+      "[AdjModern] [ColorWord]"
+    ]
+  },
+
+  "classic": {
+    "weight": 0.22,
+    "patterns": [
+      "[ColorWord] [NounClassic]",
+      "[AdjectiveClassic] [NounClassic]",
+      "[Metal] [Animal]",
+      "[Weather] [NounClassic]",
+      "[Gemstone] [NounClassic]"
+    ]
+  },
+
+  "regal": {
+    "weight": 0.12,
+    "patterns": [
+      "[Title] of [PlaceWord]",
+      "[Title] [Virtue]",
+      "[MythShard] [NounClassic]",
+      "[LatinLite] [NounClassic]",
+      "[ColorWord] [Title]"
+    ]
+  },
+
+  "motion": {
+    "weight": 0.16,
+    "patterns": [
+      "[VerbMotion] the [NounClassic]",
+      "[WindWord] [TrailWord]",
+      "[WindWord] [NounClassic]",
+      "[VerbMotion] [NounClassic]"
+    ]
+  },
+
+  "bloodline": {
+    "weight": 0.10,
+    "patterns": [
+      "[SireWord] [DamWord]",
+      "[SireWord]-[DamWord]",
+      "[CanonWord] [CanonWord]"
+    ]
+  }
+},
 
   "lexicons": {
     "Adjective": [
@@ -76,15 +117,16 @@
       "Mini Veronica","Polar Dipper","Aqua Oasis","Zamburak","Rhythmic Leap",
       "Cymbal Rhythm","Circuit Breaker","Stay Charlene","Dokadoka","Frilled Apple",
       "Flower Net","Gigant Grendel","Black Grimoire","Ribbon March","Sidecar",
-      "Immediate","Irresistible","Desert Baby","Replication",
-      "Fishin' Karambwan","Maxxed Main","Mid only","Plays up top","Data Collector",
-      "Obsessed Hobbiest","Market Maker","Five-foot FOV","Blonda Civic","Dreammobile",
-      "Attack at Dawn","Early Morning Grump","Metric Mind","The Collector","Hot Ratio",
-      "Gold Supply","Plae","Close Parking Spot","Reassess Often","Neon Epidemic",
-      "We Play","Fat Chris","Babo Mouse","Sapph Inflection","Attention To",
-      "Finding Me Tho","Bob's Burgess","Front and Center","Update Cycle",
+      "Immediate","Irresistible","Desert Baby","Replication","Mid only","Plays up top","Attack at Dawn","Early Morning Grump","Metric Mind","The Collector","Hot Ratio",
+      "Close Parking Spot","Reassess Often","Bob's Burgess","Front and Center","Update Cycle",
       "Periodic Refresh","Scan the Field","Better Act Fast","Wonderful Yellow",
-      "Standing Sleeper","Heroic Assumption"
+      "Standing Sleeper","Heroic Assumption",
+
+      "Fishin' Karambwan","Maxxed Main","Data Collector",
+      "Obsessed Hobbiest","Market Maker","Five-foot FOV","Blonda Civic","Dreammobile",     
+      "Gold Supply","Plae","Neon Epidemic",
+      "We Play","Fat Chris","Babo Mouse","Sapph Inflection","Attention To",
+      "Finding Me Tho", "Roach", "Getaway", "Good Hoof Running"
     ],
 
     
@@ -105,7 +147,60 @@
     "ParticlePhrase": ["up top","out wide","down low","on site","in lane","at scale","in full"],
     "RoleWord": ["Mid","Top","Jungle","Support","Main","Offlane"],
     "ColorWord": ["Yellow","Cyan","Amber","Sapphire","Ivory","Graphite"],
-    "Better": ["Better","Quick","Must"]
+    "Better": ["Better","Quick","Must"],
+    "AdjectiveClassic": [
+    "Swift","Crimson","Silver","Noble","Valiant","Regal","Fleet","Velvet",
+    "Feral","Whispering","Gallant","Ember","Tempest","Resolute","Radiant"
+  ],
+  "NounClassic": [
+    "Crest","Banner","Charge","Harbor","Vantage","Valor","Anthem","Summit",
+    "Spire","Relay","Volley","Oracle","Cantor","Bridle","Halter","Harness",
+    "Paddock","Gallop","Derby","Canter","Standard","Marcher"
+  ],
+  "Title": [
+    "Lady","Lord","Sir","Saint","Captain","Count","Duchess","Marshal",
+    "Regent","Magistrate","Baron","Baroness"
+  ],
+  "Virtue": [
+    "Valor","Grace","Mercy","Temperance","Triumph","Fortune","Honor","Verity"
+  ],
+  "Metal": [
+    "Iron","Steel","Bronze","Chrome","Nickel","Platinum"
+  ],
+  "Animal": [
+    "Heron","Lynx","Stag","Drake","Mare","Falcon","Kite","Panther","Vixen","Wren"
+  ],
+  "Weather": [
+    "Gale","Squall","Mistral","Sirocco","Haze","Zephyr","Tempest","Monsoon"
+  ],
+  "Gemstone": [
+    "Onyx","Jasper","Garnet","Topaz","Beryl","Agate","Opal","Jade","Pearl","Citrine"
+  ],
+  "VerbMotion": [
+    "Chase","Fly","Surge","Dash","Break","Storm","Sprint","Bolt","Wheel","Rouse"
+  ],
+  "WindWord": [
+    "Zephyr","Mistral","Sirocco","Gale","Squall","Tradewind"
+  ],
+  "TrailWord": [
+    "Trail","Path","Trace","Track","Line","Course","Stride"
+  ],
+  "MythShard": [
+    "Aegis","Tyche","Halcyon","Grendel","Nysa","Verdandi"
+  ],
+  "LatinLite": [
+    "Aquila","Ventus","Celer","Ardent","Noctis","Solis","Ignis"
+  ],
+  "PlaceWord": [
+    "Daybreak","Evenfall","Mirevale","Sunlane","Lowmarch","Highcroft",
+    "Stoneford","Ashridge","Windmere"
+  ],
+  "SireWord": [
+    "Shadow","Ribbon","Nocturne","Aquila","Velvet","Onyx","Iron","Regal","Tyche","Gallant"
+  ],
+  "DamWord": [
+    "March","Grace","Anthem","Harbor","Crest","Falcon","Spire","Valor","Summit","Zephyr"
+  ]
   },
 
   "rules": {

@@ -204,13 +204,14 @@ class Race:
     """
     Manages the simulation of a single race event based on the new stat system.
     """
-    def __init__(self, race_id):
+    def __init__(self, race_id, verbose=True):
         self.race_id = race_id
         self.horses = []
         self.distance = 0
         self.tier = ""
         self.positions = {}
         self.results_log = [] # A simple log of the finish order
+        self.verbose = verbose
 
         self._load_race_data()
         self._load_horse_entries()
@@ -225,11 +226,14 @@ class Race:
                 record = cur.fetchone()
             if record:
                 self.distance, self.tier = record
-                print(f"Loaded race data: {self.tier} race, {self.distance}m")
+                if self.verbose:
+                    print(f"Loaded race data: {self.tier} race, {self.distance}m")
             else:
-                print(f"Warning: No race found with ID {self.race_id}")
+                if self.verbose:
+                    print(f"Warning: No race found with ID {self.race_id}")
         except Exception as e:
-            print(f"Error loading race data: {e}")
+            if self.verbose:
+                print(f"Error loading race data: {e}")
             if conn:
                 conn.rollback() # <--- THIS IS THE FIX
         finally:
@@ -255,13 +259,15 @@ class Race:
                 horse_id = record[0]
                 self.horses.append(Horse(horse_id))
             
-            print(f"Loaded {len(self.horses)} horses for race {self.race_id}.")
+            if self.verbose:
+                print(f"Loaded {len(self.horses)} horses for race {self.race_id}.")
             
             # Initialize positions for all loaded horses
             self.positions = {h.horse_id: 0 for h in self.horses}
             
         except Exception as e:
-            print(f"Error loading horse entries: {e}")
+            if self.verbose:
+                print(f"Error loading horse entries: {e}")
             if conn:
                 conn.rollback()
         finally:

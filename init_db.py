@@ -45,11 +45,11 @@ def initialize_database():
             # --- PRE-POPULATE BOTS ---
             print("Populating bot trainers...")
             cur.execute("""
-                INSERT INTO derby.trainers (user_id, is_bot, cc_balance)
+                INSERT INTO derby.trainers (user_id, is_bot)
                 VALUES 
-                    (1, TRUE, 100000), -- PaddockPete
-                    (2, TRUE, 100000), -- StartingGateSally
-                    (3, TRUE, 100000)  -- FirstTurnFrank
+                    (1, TRUE), -- PaddockPete
+                    (2, TRUE), -- StartingGateSally
+                    (3, TRUE)  -- FirstTurnFrank
                 ON CONFLICT (user_id) DO NOTHING; 
             """)
             print(f"Added/updated {cur.rowcount} bot trainers.")

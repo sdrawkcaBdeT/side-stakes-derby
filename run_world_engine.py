@@ -1,10 +1,23 @@
-import sys
+import asyncio
 import os
+import sys
 
-# Get the path to the current script's directory (side-stakes-derby/)
+# Ensure sibling repo (prettyDerbyClubAnalysis) is on path for shared modules.
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Get the path to the parent directory (the one containing both projects)
 parent_dir = os.path.dirname(current_dir)
-# Add the path to the 'prettyDerbyClubAnalysis' project to sys.path
-other_project_path = os.path.join(parent_dir, 'prettyDerbyClubAnalysis')
-sys.path.append(other_project_path)
+other_project_path = os.path.join(parent_dir, "prettyDerbyClubAnalysis")
+if other_project_path not in sys.path:
+    sys.path.append(other_project_path)
+
+from derby_game.world_engine import run_world_engine
+
+
+def main():
+    try:
+        asyncio.run(run_world_engine())
+    except KeyboardInterrupt:
+        print("World engine stopped by user.")
+
+
+if __name__ == "__main__":
+    main()

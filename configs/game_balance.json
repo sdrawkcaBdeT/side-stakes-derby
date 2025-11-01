@@ -14,6 +14,10 @@
       "5": 2500000
     }
   },
+  "discord": {
+    "race_channel_id": 1409240905973628941,
+    "race_channel_name": "side-stakes-derby"
+  },
   "horse_generation": {
     "base_stats": {
       "mean": 100,
@@ -74,7 +78,7 @@
   },
   "race_strategies": {
     "Front Runner": {
-      "spd_modifier": { "early_race": 1.15, "mid_race": 1.0,  "late_race": 0.85 },
+      "spd_modifier": { "early_race": 1.15, "mid_race": 1.0,  "late_race": 0.895 },
       "fcs_modifier": { "early_race": 0,    "mid_race": -5,   "late_race": -10  },
       "grit_chance_modifier": { "late_race": -5 }
     },
@@ -84,12 +88,12 @@
       "grit_chance_modifier": { "late_race": 0 }
     },
     "Late Surger": {
-      "spd_modifier": { "early_race": 0.9,  "mid_race": 1.0,  "late_race": 1.15 },
+      "spd_modifier": { "early_race": 0.9,  "mid_race": 1.0,  "late_race": 1.185 },
       "fcs_modifier": { "early_race": 0,    "mid_race": 0,    "late_race": 5    },
       "grit_chance_modifier": { "late_race": 5 }
     },
     "End Closer": {
-      "spd_modifier": { "early_race": 0.8,  "mid_race": 0.95, "late_race": 1.25 },
+      "spd_modifier": { "early_race": 0.83,  "mid_race": 0.95, "late_race": 1.25 },
       "fcs_modifier": { "early_race": 0,    "mid_race": 0,    "late_race": 10   },
       "grit_chance_modifier": { "late_race": 10 }
     }
@@ -97,8 +101,8 @@
 
   "preferred_distance_generation": {
     "center_point_min": 1600,
-    "center_point_max": 3000,
-    "range_size_options": [400, 600, 800]
+    "center_point_max": 2600,
+    "range_size_options": [150, 250, 365]
   },
 
   "preferred_distance_penalty": {
@@ -133,6 +137,25 @@
       "min_chance": 10.0,
       "max_chance": 30.0,
       "boost_multiplier": 1.25
+    }
+  },
+  "racing": {
+    "pending_lead_hours": 0.0833,
+    "betting_window_minutes": 10,
+    "race_spacing_minutes": 60,
+    "lock_lead_minutes": 1,
+    "min_pending_races": 3,
+    "field_size": {
+      "G": 10
+    },
+    "entry_fee": {
+      "G": 150
+    },
+    "purse": {
+      "G": 2500
+    },
+    "distance_options": {
+      "G": [1000, 1200, 1400, 1600]
     }
   }
 }

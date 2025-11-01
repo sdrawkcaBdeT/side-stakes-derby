@@ -7,17 +7,31 @@
     "target_preference": "favorite",
     "wager_strategy": "percentage",
     "wager_amount": 0.03,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700001,
+    "discord_id": "derby_bot_paddockpete",
+    "ingamename": "PaddockPete",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 10000
   },
   {
     "name": "StartingGateSally",
     "bankroll": 12000,
-    "bet_frequency": 0.90,
+    "bet_frequency": 0.9,
     "bet_timing": "early",
     "target_preference": "favorite",
     "wager_strategy": "percentage",
     "wager_amount": 0.02,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700002,
+    "discord_id": "derby_bot_startinggatesally",
+    "ingamename": "StartingGateSally",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 12000
   },
   {
     "name": "FirstTurnFrank",
@@ -27,17 +41,31 @@
     "target_preference": "random",
     "wager_strategy": "flat",
     "wager_amount": 300,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700003,
+    "discord_id": "derby_bot_firstturnfrank",
+    "ingamename": "FirstTurnFrank",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 11000
   },
   {
     "name": "BackstretchBarry",
     "bankroll": 15000,
-    "bet_frequency": 0.70,
+    "bet_frequency": 0.7,
     "bet_timing": "mid",
     "target_preference": "value",
     "wager_strategy": "percentage",
     "wager_amount": 0.05,
-    "max_bets_per_race": 2
+    "max_bets_per_race": 2,
+    "trainer_id": 700004,
+    "discord_id": "derby_bot_backstretchbarry",
+    "ingamename": "BackstretchBarry",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 15000
   },
   {
     "name": "HomestretchHarry",
@@ -47,17 +75,31 @@
     "target_preference": "second_favorite",
     "wager_strategy": "percentage",
     "wager_amount": 0.06,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700005,
+    "discord_id": "derby_bot_homestretchharry",
+    "ingamename": "HomestretchHarry",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 18000
   },
   {
     "name": "GrandstandGus",
     "bankroll": 20000,
-    "bet_frequency": 0.80,
+    "bet_frequency": 0.8,
     "bet_timing": "any",
     "target_preference": "favorite",
     "wager_strategy": "flat",
     "wager_amount": 500,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700006,
+    "discord_id": "derby_bot_grandstandgus",
+    "ingamename": "GrandstandGus",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 20000
   },
   {
     "name": "ClubhouseClara",
@@ -67,37 +109,65 @@
     "target_preference": "value",
     "wager_strategy": "percentage",
     "wager_amount": 0.04,
-    "max_bets_per_race": 3
+    "max_bets_per_race": 3,
+    "trainer_id": 700007,
+    "discord_id": "derby_bot_clubhouseclara",
+    "ingamename": "ClubhouseClara",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 22000
   },
   {
     "name": "BagginsTheBookie",
     "bankroll": 50000,
-    "bet_frequency": 1.00,
+    "bet_frequency": 1.0,
     "bet_timing": "mid",
     "target_preference": "human_fade",
     "wager_strategy": "percentage",
-    "wager_amount": 0.10,
-    "max_bets_per_race": 1
+    "wager_amount": 0.1,
+    "max_bets_per_race": 1,
+    "trainer_id": 700008,
+    "discord_id": "derby_bot_bagginsthebookie",
+    "ingamename": "BagginsTheBookie",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 50000
   },
   {
     "name": "DailyDoubleDoug",
     "bankroll": 16000,
-    "bet_frequency": 0.50,
+    "bet_frequency": 0.5,
     "bet_timing": "any",
     "target_preference": "random",
     "wager_strategy": "flat",
     "wager_amount": 1000,
-    "max_bets_per_race": 2
+    "max_bets_per_race": 2,
+    "trainer_id": 700009,
+    "discord_id": "derby_bot_dailydoubledoug",
+    "ingamename": "DailyDoubleDoug",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 16000
   },
   {
     "name": "PhotoFinishPhil",
     "bankroll": 30000,
-    "bet_frequency": 0.40,
+    "bet_frequency": 0.4,
     "bet_timing": "late",
     "target_preference": "longshot",
     "wager_strategy": "percentage",
     "wager_amount": 0.08,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700010,
+    "discord_id": "derby_bot_photofinishphil",
+    "ingamename": "PhotoFinishPhil",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 30000
   },
   {
     "name": "SniperSam",
@@ -107,7 +177,14 @@
     "target_preference": "longshot",
     "wager_strategy": "flat",
     "wager_amount": 750,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700011,
+    "discord_id": "derby_bot_snipersam",
+    "ingamename": "SniperSam",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 25000
   },
   {
     "name": "HighRollerHarry",
@@ -116,28 +193,49 @@
     "bet_timing": "mid",
     "target_preference": "favorite",
     "wager_strategy": "percentage",
-    "wager_amount": 0.20,
-    "max_bets_per_race": 1
+    "wager_amount": 0.2,
+    "max_bets_per_race": 1,
+    "trainer_id": 700012,
+    "discord_id": "derby_bot_highrollerharry",
+    "ingamename": "HighRollerHarry",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 100000
   },
   {
     "name": "AnalystAnna",
     "bankroll": 15000,
-    "bet_frequency": 0.60,
+    "bet_frequency": 0.6,
     "bet_timing": "any",
     "target_preference": "value",
     "wager_strategy": "percentage",
     "wager_amount": 0.05,
-    "max_bets_per_race": 3
+    "max_bets_per_race": 3,
+    "trainer_id": 700013,
+    "discord_id": "derby_bot_analystanna",
+    "ingamename": "AnalystAnna",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 15000
   },
   {
     "name": "CautiousCarl",
     "bankroll": 8000,
-    "bet_frequency": 0.90,
+    "bet_frequency": 0.9,
     "bet_timing": "early",
     "target_preference": "favorite",
     "wager_strategy": "flat",
     "wager_amount": 100,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700014,
+    "discord_id": "derby_bot_cautiouscarl",
+    "ingamename": "CautiousCarl",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 8000
   },
   {
     "name": "ValueVince",
@@ -147,77 +245,133 @@
     "target_preference": "value",
     "wager_strategy": "percentage",
     "wager_amount": 0.07,
-    "max_bets_per_race": 2
+    "max_bets_per_race": 2,
+    "trainer_id": 700015,
+    "discord_id": "derby_bot_valuevince",
+    "ingamename": "ValueVince",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 18000
   },
   {
     "name": "RandomRick",
     "bankroll": 9000,
-    "bet_frequency": 0.80,
+    "bet_frequency": 0.8,
     "bet_timing": "any",
     "target_preference": "random",
     "wager_strategy": "percentage",
     "wager_amount": 0.02,
-    "max_bets_per_race": 4
+    "max_bets_per_race": 4,
+    "trainer_id": 700016,
+    "discord_id": "derby_bot_randomrick",
+    "ingamename": "RandomRick",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 9000
   },
   {
     "name": "MomentumMary",
     "bankroll": 13000,
-    "bet_frequency": 0.60,
+    "bet_frequency": 0.6,
     "bet_timing": "mid",
     "target_preference": "momentum",
     "wager_strategy": "flat",
     "wager_amount": 400,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700017,
+    "discord_id": "derby_bot_momentummary",
+    "ingamename": "MomentumMary",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 13000
   },
   {
     "name": "LongshotLarry",
     "bankroll": 20000,
-    "bet_frequency": 0.30,
+    "bet_frequency": 0.3,
     "bet_timing": "late",
     "target_preference": "longshot",
     "wager_strategy": "percentage",
     "wager_amount": 0.05,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700018,
+    "discord_id": "derby_bot_longshotlarry",
+    "ingamename": "LongshotLarry",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 20000
   },
   {
     "name": "SteadyEddie",
     "bankroll": 14000,
-    "bet_frequency": 0.90,
+    "bet_frequency": 0.9,
     "bet_timing": "early",
     "target_preference": "second_favorite",
     "wager_strategy": "percentage",
     "wager_amount": 0.03,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700019,
+    "discord_id": "derby_bot_steadyeddie",
+    "ingamename": "SteadyEddie",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 14000
   },
   {
     "name": "WhaleWendy",
     "bankroll": 120000,
-    "bet_frequency": 0.10,
+    "bet_frequency": 0.1,
     "bet_timing": "mid",
     "target_preference": "value",
     "wager_strategy": "percentage",
     "wager_amount": 0.15,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700020,
+    "discord_id": "derby_bot_whalewendy",
+    "ingamename": "WhaleWendy",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 120000
   },
   {
     "name": "ContrarianConnie",
     "bankroll": 17000,
-    "bet_frequency": 0.40,
+    "bet_frequency": 0.4,
     "bet_timing": "late",
     "target_preference": "human_fade",
     "wager_strategy": "flat",
     "wager_amount": 600,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700021,
+    "discord_id": "derby_bot_contrarianconnie",
+    "ingamename": "ContrarianConnie",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 17000
   },
   {
     "name": "MinuteMilly",
     "bankroll": 10000,
-    "bet_frequency": 0.70,
+    "bet_frequency": 0.7,
     "bet_timing": "late",
     "target_preference": "random",
     "wager_strategy": "percentage",
     "wager_amount": 0.04,
-    "max_bets_per_race": 2
+    "max_bets_per_race": 2,
+    "trainer_id": 700022,
+    "discord_id": "derby_bot_minutemilly",
+    "ingamename": "MinuteMilly",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 10000
   },
   {
     "name": "ThriftyTheo",
@@ -227,26 +381,455 @@
     "target_preference": "value",
     "wager_strategy": "flat",
     "wager_amount": 50,
-    "max_bets_per_race": 5
+    "max_bets_per_race": 5,
+    "trainer_id": 700023,
+    "discord_id": "derby_bot_thriftytheo",
+    "ingamename": "ThriftyTheo",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 7500
   },
   {
     "name": "ProfessorPlum",
     "bankroll": 25000,
-    "bet_frequency": 0.50,
+    "bet_frequency": 0.5,
     "bet_timing": "early",
     "target_preference": "statistical",
     "wager_strategy": "percentage",
     "wager_amount": 0.05,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700024,
+    "discord_id": "derby_bot_professorplum",
+    "ingamename": "ProfessorPlum",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 25000
   },
   {
     "name": "JustForFunJen",
     "bankroll": 5000,
-    "bet_frequency": 1.00,
+    "bet_frequency": 1.0,
     "bet_timing": "any",
     "target_preference": "random",
     "wager_strategy": "flat",
     "wager_amount": 100,
-    "max_bets_per_race": 1
+    "max_bets_per_race": 1,
+    "trainer_id": 700025,
+    "discord_id": "derby_bot_justforfunjen",
+    "ingamename": "JustForFunJen",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 5000
+  },
+  {
+    "name": "RailbirdRita",
+    "bankroll": 14000,
+    "bet_frequency": 0.78,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 2,
+    "trainer_id": 700026,
+    "discord_id": "derby_bot_railbirdrita",
+    "ingamename": "RailbirdRita",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 14000
+  },
+  {
+    "name": "OddskeeperOmar",
+    "bankroll": 22000,
+    "bet_frequency": 0.62,
+    "bet_timing": "any",
+    "target_preference": "statistical",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.04,
+    "max_bets_per_race": 3,
+    "trainer_id": 700027,
+    "discord_id": "derby_bot_oddskeeperomar",
+    "ingamename": "OddskeeperOmar",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 22000
+  },
+  {
+    "name": "ToteBoardTia",
+    "bankroll": 26000,
+    "bet_frequency": 0.55,
+    "bet_timing": "mid",
+    "target_preference": "favorite",
+    "wager_strategy": "flat",
+    "wager_amount": 600,
+    "max_bets_per_race": 1,
+    "trainer_id": 700028,
+    "discord_id": "derby_bot_toteboardtia",
+    "ingamename": "ToteBoardTia",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 26000
+  },
+  {
+    "name": "ChalkCharlie",
+    "bankroll": 18000,
+    "bet_frequency": 0.85,
+    "bet_timing": "early",
+    "target_preference": "favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.03,
+    "max_bets_per_race": 1,
+    "trainer_id": 700029,
+    "discord_id": "derby_bot_chalkcharlie",
+    "ingamename": "ChalkCharlie",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 18000
+  },
+  {
+    "name": "OverlayOlive",
+    "bankroll": 20000,
+    "bet_frequency": 0.7,
+    "bet_timing": "late",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.06,
+    "max_bets_per_race": 2,
+    "trainer_id": 700030,
+    "discord_id": "derby_bot_overlayolive",
+    "ingamename": "OverlayOlive",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 20000
+  },
+  {
+    "name": "SteamSteve",
+    "bankroll": 23000,
+    "bet_frequency": 0.68,
+    "bet_timing": "late",
+    "target_preference": "momentum",
+    "wager_strategy": "flat",
+    "wager_amount": 450,
+    "max_bets_per_race": 2,
+    "trainer_id": 700031,
+    "discord_id": "derby_bot_steamsteve",
+    "ingamename": "SteamSteve",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 23000
+  },
+  {
+    "name": "DriftDana",
+    "bankroll": 16000,
+    "bet_frequency": 0.58,
+    "bet_timing": "late",
+    "target_preference": "human_fade",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.07,
+    "max_bets_per_race": 1,
+    "trainer_id": 700032,
+    "discord_id": "derby_bot_driftdana",
+    "ingamename": "DriftDana",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 16000
+  },
+  {
+    "name": "ExactaEli",
+    "bankroll": 12500,
+    "bet_frequency": 0.5,
+    "bet_timing": "any",
+    "target_preference": "favorite",
+    "wager_strategy": "flat",
+    "wager_amount": 800,
+    "max_bets_per_race": 2,
+    "trainer_id": 700033,
+    "discord_id": "derby_bot_exactaeli",
+    "ingamename": "ExactaEli",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 12500
+  },
+  {
+    "name": "QuinellaQuinn",
+    "bankroll": 13500,
+    "bet_frequency": 0.52,
+    "bet_timing": "any",
+    "target_preference": "second_favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.06,
+    "max_bets_per_race": 2,
+    "trainer_id": 700034,
+    "discord_id": "derby_bot_quinellaquinn",
+    "ingamename": "QuinellaQuinn",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 13500
+  },
+  {
+    "name": "ParlayPatty",
+    "bankroll": 21000,
+    "bet_frequency": 0.65,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 3,
+    "trainer_id": 700035,
+    "discord_id": "derby_bot_parlaypatty",
+    "ingamename": "ParlayPatty",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 21000
+  },
+  {
+    "name": "HedgeHector",
+    "bankroll": 30000,
+    "bet_frequency": 0.6,
+    "bet_timing": "late",
+    "target_preference": "favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.04,
+    "max_bets_per_race": 3,
+    "trainer_id": 700036,
+    "discord_id": "derby_bot_hedgehector",
+    "ingamename": "HedgeHector",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 30000
+  },
+  {
+    "name": "FadeFiona",
+    "bankroll": 17000,
+    "bet_frequency": 0.48,
+    "bet_timing": "late",
+    "target_preference": "human_fade",
+    "wager_strategy": "flat",
+    "wager_amount": 650,
+    "max_bets_per_race": 1,
+    "trainer_id": 700037,
+    "discord_id": "derby_bot_fadefiona",
+    "ingamename": "FadeFiona",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 17000
+  },
+  {
+    "name": "LongshotLena",
+    "bankroll": 19000,
+    "bet_frequency": 0.35,
+    "bet_timing": "late",
+    "target_preference": "longshot",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.09,
+    "max_bets_per_race": 1,
+    "trainer_id": 700038,
+    "discord_id": "derby_bot_longshotlena",
+    "ingamename": "LongshotLena",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 19000
+  },
+  {
+    "name": "PaceModelPia",
+    "bankroll": 24000,
+    "bet_frequency": 0.57,
+    "bet_timing": "mid",
+    "target_preference": "statistical",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 2,
+    "trainer_id": 700039,
+    "discord_id": "derby_bot_pacemodelpia",
+    "ingamename": "PaceModelPia",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 24000
+  },
+  {
+    "name": "BookRunnerBen",
+    "bankroll": 32000,
+    "bet_frequency": 0.5,
+    "bet_timing": "any",
+    "target_preference": "value",
+    "wager_strategy": "flat",
+    "wager_amount": 900,
+    "max_bets_per_race": 2,
+    "trainer_id": 700040,
+    "discord_id": "derby_bot_bookrunnerben",
+    "ingamename": "BookRunnerBen",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 32000
+  },
+  {
+    "name": "GreenlineGabe",
+    "bankroll": 21000,
+    "bet_frequency": 0.72,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.05,
+    "max_bets_per_race": 2,
+    "trainer_id": 700041,
+    "discord_id": "derby_bot_greenlinegabe",
+    "ingamename": "GreenlineGabe",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 21000
+  },
+  {
+    "name": "TrackPilotTara",
+    "bankroll": 15500,
+    "bet_frequency": 0.66,
+    "bet_timing": "early",
+    "target_preference": "second_favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.04,
+    "max_bets_per_race": 1,
+    "trainer_id": 700042,
+    "discord_id": "derby_bot_trackpilottara",
+    "ingamename": "TrackPilotTara",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 15500
+  },
+  {
+    "name": "PhotoLineLeo",
+    "bankroll": 27000,
+    "bet_frequency": 0.42,
+    "bet_timing": "late",
+    "target_preference": "longshot",
+    "wager_strategy": "flat",
+    "wager_amount": 700,
+    "max_bets_per_race": 1,
+    "trainer_id": 700043,
+    "discord_id": "derby_bot_photolineleo",
+    "ingamename": "PhotoLineLeo",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 27000
+  },
+  {
+    "name": "BreakEvenBree",
+    "bankroll": 14500,
+    "bet_frequency": 0.88,
+    "bet_timing": "any",
+    "target_preference": "favorite",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.02,
+    "max_bets_per_race": 3,
+    "trainer_id": 700044,
+    "discord_id": "derby_bot_breakevenbree",
+    "ingamename": "BreakEvenBree",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 14500
+  },
+  {
+    "name": "RailRangerRex",
+    "bankroll": 20000,
+    "bet_frequency": 0.64,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "flat",
+    "wager_amount": 500,
+    "max_bets_per_race": 2,
+    "trainer_id": 700045,
+    "discord_id": "derby_bot_railrangerrex",
+    "ingamename": "RailRangerRex",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 20000
+  },
+  {
+    "name": "PricePilotPoe",
+    "bankroll": 16500,
+    "bet_frequency": 0.62,
+    "bet_timing": "mid",
+    "target_preference": "statistical",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.04,
+    "max_bets_per_race": 2,
+    "trainer_id": 700046,
+    "discord_id": "derby_bot_pricepilotpoe",
+    "ingamename": "PricePilotPoe",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 16500
+  },
+  {
+    "name": "VarianceViolet",
+    "bankroll": 28500,
+    "bet_frequency": 0.4,
+    "bet_timing": "late",
+    "target_preference": "random",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.08,
+    "max_bets_per_race": 1,
+    "trainer_id": 700047,
+    "discord_id": "derby_bot_varianceviolet",
+    "ingamename": "VarianceViolet",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 28500
+  },
+  {
+    "name": "TurfBuddyKai",
+    "bankroll": 12000,
+    "bet_frequency": 0.9,
+    "bet_timing": "early",
+    "target_preference": "favorite",
+    "wager_strategy": "flat",
+    "wager_amount": 150,
+    "max_bets_per_race": 1,
+    "trainer_id": 700048,
+    "discord_id": "derby_bot_turfbuddykai",
+    "ingamename": "TurfBuddyKai",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 12000
+  },
+  {
+    "name": "WhisperingWillow",
+    "bankroll": 13000,
+    "bet_frequency": 0.75,
+    "bet_timing": "mid",
+    "target_preference": "value",
+    "wager_strategy": "percentage",
+    "wager_amount": 0.03,
+    "max_bets_per_race": 3,
+    "trainer_id": 700049,
+    "discord_id": "derby_bot_whisperingwillow",
+    "ingamename": "WhisperingWillow",
+    "stable_targets": {
+      "G": 10
+    },
+    "starting_balance": 13000
   }
 ]

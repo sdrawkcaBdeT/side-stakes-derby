@@ -4,6 +4,7 @@ import os
 
 # Assuming your commands will be in a 'commands.py' file within this 'bot' directory
 COMMANDS_COG_PATH = 'derby_game.bot.commands'
+BROADCAST_COG_PATH = 'derby_game.bot.race_broadcast'
 
 class DerbyBotManager(commands.Bot):
     """Custom Bot class for Derby Game management."""
@@ -20,7 +21,14 @@ class DerbyBotManager(commands.Bot):
             print(f"Successfully loaded cog: {COMMANDS_COG_PATH}")
         except Exception as e:
             print(f"Failed to load cog {COMMANDS_COG_PATH}: {e}")
-            raise # Re-raise error to prevent bot from starting incorrectly
+            raise
+
+        try:
+            await self.load_extension(BROADCAST_COG_PATH)
+            print(f"Successfully loaded cog: {BROADCAST_COG_PATH}")
+        except Exception as e:
+            print(f"Failed to load cog {BROADCAST_COG_PATH}: {e}")
+            raise
 
         # Sync commands for testing guild immediately
         # For production, you might sync globally or handle differently

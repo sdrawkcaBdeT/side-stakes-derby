@@ -12,3 +12,13 @@ derby_game/bot/__pycache__/commands.cpython-311.pyc
 derby_game/bot/__pycache__/manager.cpython-311.pyc
 derby_game/database/__pycache__/queries.cpython-311.pyc
 derby_game/__pycache__/config.cpython-311.pyc
+tests/__pycache__/__init__.cpython-311.pyc
+tests/__pycache__/test_betting_service.cpython-311-pytest-8.3.5.pyc
+tests/__pycache__/test_database.cpython-311-pytest-8.3.5.pyc
+tests/__pycache__/test_simulation.cpython-311-pytest-8.3.5.pyc
+tests/__pycache__/test_world_engine.cpython-311-pytest-8.3.5.pyc
+derby_game/bot/__pycache__/race_broadcast.cpython-311.pyc
+derby_game/__pycache__/bot_bettors.cpython-311.pyc
+derby_game/__pycache__/betting_service.cpython-311.pyc
+__tmp.txt
+__temp__.txt
