@@ -22,3 +22,14 @@ derby_game/__pycache__/bot_bettors.cpython-311.pyc
 derby_game/__pycache__/betting_service.cpython-311.pyc
 __tmp.txt
 __temp__.txt
+derby_game/engine/__pycache__/__init__.cpython-311.pyc
+derby_game/engine/__pycache__/constants.cpython-311.pyc
+derby_game/engine/__pycache__/course.cpython-311.pyc
+derby_game/engine/__pycache__/data_models.cpython-311.pyc
+derby_game/engine/__pycache__/geometry.cpython-311.pyc
+derby_game/engine/__pycache__/physics.cpython-311.pyc
+derby_game/engine/__pycache__/race_loop.cpython-311.pyc
+derby_game/engine/__pycache__/spatial.cpython-311.pyc
+derby_game/engine/__pycache__/svg_loader.cpython-311.pyc
+derby_game/engine/__pycache__/telemetry.cpython-311.pyc
+derby_game/engine/__pycache__/track_registry.cpython-311.pyc

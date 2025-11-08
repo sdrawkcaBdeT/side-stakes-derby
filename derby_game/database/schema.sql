@@ -50,6 +50,7 @@ CREATE TABLE derby.horses (
     -- Core Stats
     spd INT NOT NULL,
     sta INT NOT NULL,
+    acc INT NOT NULL DEFAULT 0,
     fcs INT NOT NULL,
     grt INT NOT NULL,
     cog INT NOT NULL,

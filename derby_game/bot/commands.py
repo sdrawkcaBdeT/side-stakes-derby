@@ -394,9 +394,10 @@ class DerbyCommands(commands.Cog):
                 remaining_months = age_months % 12
                 age_text = f"{age_years}y {remaining_months}m"
 
+            acc_value = horse.get("acc", horse.get("spd"))
             line = (
                 f"#{horse['horse_id']} {horse['name']} — {horse['strategy']} | HG {horse['hg_score']}\n"
-                f"Stats: SPD {horse['spd']} STA {horse['sta']} FCS {horse['fcs']} GRT {horse['grt']} COG {horse['cog']} LCK {horse['lck']}\n"
+                f"Stats: SPD {horse['spd']} STA {horse['sta']} ACC {acc_value} FCS {horse['fcs']} GRT {horse['grt']} COG {horse['cog']} LCK {horse['lck']}\n"
                 f"Pref: {horse['min_pref_distance']}–{horse['max_pref_distance']}m | Age: {age_text} | {status_text}"
             )
 
@@ -418,7 +419,7 @@ class DerbyCommands(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     def _format_stat_grid(self, entries: List[Dict[str, object]], odds_map: Dict[int, Dict[str, Decimal]]) -> str:
-        header = "Ln Horse               SPD STA FCS GRT COG LCK Odds"
+        header = "Ln Horse               SPD STA ACC FCS GRT COG LCK Odds"
         lines = [header, "-" * len(header)]
         for lane, entry in enumerate(entries, start=1):
             odds_entry = odds_map.get(entry['horse_id']) if odds_map else None
@@ -426,11 +427,13 @@ class DerbyCommands(commands.Cog):
                 odds_text = format_fractional_odds(Decimal(str(odds_entry['odds'])))
             else:
                 odds_text = "-"
+            acc_value = entry.get("acc", entry.get("spd", 0))
             line = (
                 f"{lane:>2} "
                 f"{entry['name'][:18]:<18} "
                 f"{entry['spd']:>3} "
                 f"{entry['sta']:>3} "
+                f"{acc_value:>3} "
                 f"{entry['fcs']:>3} "
                 f"{entry['grt']:>3} "
                 f"{entry['cog']:>3} "
@@ -709,6 +712,7 @@ class DerbyCommands(commands.Cog):
         stat=[
             app_commands.Choice(name="Speed (SPD)", value="spd"),
             app_commands.Choice(name="Stamina (STA)", value="sta"),
+            app_commands.Choice(name="Acceleration (ACC)", value="acc"),
             app_commands.Choice(name="Focus (FCS)", value="fcs"),
             app_commands.Choice(name="Grit (GRT)", value="grt"),
             app_commands.Choice(name="Cognition (COG)", value="cog"),
@@ -891,7 +895,7 @@ class DerbyCommands(commands.Cog):
             "`/race_info <race_id>` - Full field sheet with live odds refresh.",
             "`/bet <race_id> <horse> <amount>` - Bet on a horse by ID or name; odds lock on confirm.",
             "`/my_bets` - Review your recent wagers and outcomes.",
-            "`/train <horse> <stat>` - Queue a 16-hour training job (cost is charged immediately).",
+            "`/train <horse> <stat>` - Queue a 16-hour training job (SPD, STA, ACC, FCS, GRT, COG).",
             "`/stable` - View your stable roster and horse details.",
             "`/enter_race <race_id> <horse>` - Swap one of your horses into a pending race.",
             "`/withdraw_race <race_id> <horse>` - Pull your horse out before betting locks.",

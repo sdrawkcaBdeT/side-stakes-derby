@@ -72,6 +72,7 @@ def _ensure_market_race(race_obj: Race):
                 "stats": {
                     "spd": horse.spd,
                     "sta": horse.sta,
+                    "acc": getattr(horse, "acc", horse.spd),
                     "fcs": horse.fcs,
                     "grt": horse.grt,
                     "cog": horse.cog,

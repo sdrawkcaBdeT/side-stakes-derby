@@ -403,7 +403,7 @@ class RaceBroadcastCog(commands.Cog):
         return "\n".join(top)
 
     def _build_stat_grid(self, entries: List[Dict[str, Any]], odds_map: Dict[int, Dict[str, Any]]) -> str:
-        header = "Ln Horse               SPD STA FCS GRT COG LCK Odds"
+        header = "Ln Horse               SPD STA ACC FCS GRT COG LCK Odds"
         lines = [header, "-" * len(header)]
         for lane, entry in enumerate(entries, start=1):
             odds = odds_map.get(entry["horse_id"])
@@ -412,11 +412,13 @@ class RaceBroadcastCog(commands.Cog):
                 odds_text = format_fractional_odds(decimal_odds)
             else:
                 odds_text = "-"
+            acc_value = entry.get("acc", entry.get("spd", 0))
             line = (
                 f"{lane:>2} "
                 f"{entry['name'][:18]:<18} "
                 f"{entry['spd']:>3} "
                 f"{entry['sta']:>3} "
+                f"{acc_value:>3} "
                 f"{entry['fcs']:>3} "
                 f"{entry['grt']:>3} "
                 f"{entry['cog']:>3} "

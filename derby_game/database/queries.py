@@ -25,7 +25,7 @@ except ImportError:
     market_db = None
 
 MARKET_BETS_TABLE = "derby.market_bets"
-TRAINABLE_STATS = {"spd", "sta", "fcs", "grt", "cog"}
+TRAINABLE_STATS = {"spd", "sta", "acc", "fcs", "grt", "cog"}
 TRAINING_DURATION_HOURS = BALANCE_CONFIG['training'].get('session_duration_hours', 16)
 TRAINING_FEE = BALANCE_CONFIG['economy']['training_fee']
 MARKET_ADMIN_ID = "derby_system"
@@ -135,7 +135,7 @@ def get_horses_in_race(race_id: int):
                 SELECT
                     h.horse_id, h.name, h.strategy,
                     h.min_preferred_distance, h.max_preferred_distance,
-                    h.spd, h.sta, h.fcs, h.grt, h.cog, h.lck, h.hg_score
+                    h.spd, h.sta, h.acc, h.fcs, h.grt, h.cog, h.lck, h.hg_score
                 FROM race_entries re
                 JOIN horses h ON re.horse_id = h.horse_id
                 WHERE re.race_id = %s
@@ -153,11 +153,12 @@ def get_horses_in_race(race_id: int):
                     "max_pref_dist": row[4],
                     "spd": row[5],
                     "sta": row[6],
-                    "fcs": row[7],
-                    "grt": row[8],
-                    "cog": row[9],
-                    "lck": row[10],
-                    "hg_score": row[11]
+                    "acc": row[7],
+                    "fcs": row[8],
+                    "grt": row[9],
+                    "cog": row[10],
+                    "lck": row[11],
+                    "hg_score": row[12]
                 })
     except Exception as e:
         print(f"Error in get_horses_in_race for race {race_id}: {e}")
@@ -1095,6 +1096,7 @@ def get_available_bot_horses(tier: str, limit: int = 10, *,
         "G": int(
             base_max * (
                 weights['spd'] +
+                weights.get('acc', 0) +
                 weights['sta'] +
                 weights['fcs'] +
                 weights['grt'] +
@@ -1250,7 +1252,7 @@ def get_trainer_horses(user_id: int, *, include_retired: bool = False):
                 SELECT h.horse_id, h.name, h.strategy,
                        h.min_preferred_distance, h.max_preferred_distance,
                        h.birth_timestamp,
-                       h.spd, h.sta, h.fcs, h.grt, h.cog, h.lck,
+                       h.spd, h.sta, h.acc, h.fcs, h.grt, h.cog, h.lck,
                        h.hg_score, h.is_retired, h.in_training_until,
                        plan.stat_code, plan.is_active
                 FROM horses h
@@ -1274,15 +1276,16 @@ def get_trainer_horses(user_id: int, *, include_retired: bool = False):
                     "birth_timestamp": row[5],
                     "spd": row[6],
                     "sta": row[7],
-                    "fcs": row[8],
-                    "grt": row[9],
-                    "cog": row[10],
-                    "lck": row[11],
-                    "hg_score": row[12],
-                    "is_retired": row[13],
-                    "in_training_until": row[14],
-                    "training_plan_stat": row[15],
-                    "training_plan_active": row[16],
+                    "acc": row[8],
+                    "fcs": row[9],
+                    "grt": row[10],
+                    "cog": row[11],
+                    "lck": row[12],
+                    "hg_score": row[13],
+                    "is_retired": row[14],
+                    "in_training_until": row[15],
+                    "training_plan_stat": row[16],
+                    "training_plan_active": row[17],
                 })
     except Exception as e:
         print(f"Error getting horses for trainer {user_id}: {e}")
@@ -1423,7 +1426,7 @@ def start_training_session(trainer_id: int, horse_id: int, stat: str):
     """
     stat_code = (stat or "").lower()
     if stat_code not in TRAINABLE_STATS:
-        return False, "Invalid stat. Choose from SPD, STA, FCS, GRT, or COG.", None
+        return False, "Invalid stat. Choose from SPD, STA, ACC, FCS, GRT, or COG.", None
 
     conn = None
     now_utc = datetime.now(timezone.utc)

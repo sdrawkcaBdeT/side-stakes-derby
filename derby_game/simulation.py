@@ -4,7 +4,19 @@ from derby_game.database.connection import get_db_connection
 from datetime import datetime, timezone
 from copy import deepcopy
 from derby_game.config import BALANCE_CONFIG
+from typing import List
 from derby_game.horse_name_generator import NameGenerator
+from derby_game.engine.track_registry import DEFAULT_TRACK_REGISTRY
+from derby_game.engine import (
+    Aptitudes,
+    AptitudeGrade,
+    HybridRaceLoop,
+    RacerProfile,
+    RacerStats,
+    Strategy,
+    TelemetryCollector,
+)
+from derby_game.database import queries as derby_queries
 import random
 import json
 import os
@@ -23,11 +35,44 @@ parent_dir = os.path.dirname(current_dir)
 other_project_path = os.path.join(parent_dir, 'prettyDerbyClubAnalysis')
 sys.path.append(other_project_path)
 
+def _hybrid_engine_enabled() -> bool:
+    config_flag = False
+    if isinstance(BALANCE_CONFIG, dict):
+        config_flag = BALANCE_CONFIG.get("race_engine", {}).get("use_hybrid_engine", False)
+    env_value = os.getenv("DERBY_USE_HYBRID_ENGINE")
+    if env_value is not None:
+        config_flag = env_value.lower() in ("1", "true", "yes", "on")
+    return config_flag
+
+STRATEGY_STRING_MAP = {
+    "front runner": Strategy.FRONT_RUNNER,
+    "front_runner": Strategy.FRONT_RUNNER,
+    "nige": Strategy.FRONT_RUNNER,
+    "pace chaser": Strategy.PACE_CHASER,
+    "pace_chaser": Strategy.PACE_CHASER,
+    "senkou": Strategy.PACE_CHASER,
+    "late surger": Strategy.LATE_SURGER,
+    "late_surser": Strategy.LATE_SURGER,
+    "late_surfer": Strategy.LATE_SURGER,
+    "sasi": Strategy.LATE_SURGER,
+    "end closer": Strategy.END_CLOSER,
+    "end_closer": Strategy.END_CLOSER,
+    "oikomi": Strategy.END_CLOSER,
+}
+STRATEGY_INT_MAP = {
+    1: Strategy.FRONT_RUNNER,
+    2: Strategy.PACE_CHASER,
+    3: Strategy.LATE_SURGER,
+    4: Strategy.END_CLOSER,
+}
+DEFAULT_SURFACE_APTITUDE = AptitudeGrade.A
+
+
 # --- The new Horse Class ---
 
 class Horse:
     """
-    Represents a single horse in the database, using the new 6-stat system.
+    Represents a single horse in the database, using the new 7-stat system.
     """
     def __init__(self, horse_id):
         """
@@ -42,6 +87,7 @@ class Horse:
         self.birth_timestamp = None
         self.spd = 0
         self.sta = 0
+        self.acc = 0
         self.fcs = 0
         self.grt = 0
         self.cog = 0
@@ -79,13 +125,14 @@ class Horse:
                 self.birth_timestamp = record[7]
                 self.spd = record[8]
                 self.sta = record[9]
-                self.fcs = record[10]
-                self.grt = record[11]
-                self.cog = record[12]
-                self.lck = record[13]
-                self.hg_score = record[14]
-                self.is_retired = record[15]
-                self.in_training_until = record[16]
+                self.acc = record[10]
+                self.fcs = record[11]
+                self.grt = record[12]
+                self.cog = record[13]
+                self.lck = record[14]
+                self.hg_score = record[15]
+                self.is_retired = record[16]
+                self.in_training_until = record[17]
             else:
                 print(f"Warning: No horse found with ID {self.horse_id}")
                 
@@ -114,12 +161,12 @@ class Horse:
         return (self.age_in_days // 12) + 2
 
     @staticmethod
-    def _calculate_hg(spd, sta, fcs, grt, cog, lck):
+    def _calculate_hg(spd, sta, acc, fcs, grt, cog, lck):
         """
         Calculates the HG score based on config formula.
         """
         cfg = BALANCE_CONFIG['hg_formula_weights']
-        hg = (spd * cfg['spd']) + (sta * cfg['sta']) + (fcs * cfg['fcs']) + \
+        hg = (spd * cfg['spd']) + (acc * cfg.get('acc', cfg['spd'])) + (sta * cfg['sta']) + (fcs * cfg['fcs']) + \
              (grt * cfg['grt']) + (cog * cfg['cog']) + (lck * cfg['lck'])
         return int(hg)
 
@@ -136,6 +183,7 @@ class Horse:
         
         spd = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
         sta = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
+        acc = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
         fcs = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
         grt = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
         cog = int(np.clip(np.random.normal(cfg_base['mean'], cfg_base['std_dev']), cfg_base['min'], cfg_base['max']))
@@ -143,7 +191,7 @@ class Horse:
         lck = int(np.clip(np.random.normal(cfg_lck['mean'], cfg_lck['std_dev']), cfg_lck['min'], cfg_lck['max']))
 
         # --- 2. Calculate HG ---
-        hg_score = Horse._calculate_hg(spd, sta, fcs, grt, cog, lck)
+        hg_score = Horse._calculate_hg(spd, sta, acc, fcs, grt, cog, lck)
         
         # --- 3. Generate Name ---
         try:
@@ -174,13 +222,13 @@ class Horse:
                 sql = """
                 INSERT INTO horses
                 (owner_id, is_bot, name, strategy, min_preferred_distance, max_preferred_distance,
-                 spd, sta, fcs, grt, cog, lck, hg_score)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 spd, sta, acc, fcs, grt, cog, lck, hg_score)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING horse_id;
                 """
                 cur.execute(sql, (
                     owner_id, is_bot, name, strategy, min_pref, max_pref,
-                    spd, sta, fcs, grt, cog, lck, hg_score
+                    spd, sta, acc, fcs, grt, cog, lck, hg_score
                 ))
 
                 new_horse_id = cur.fetchone()[0]
@@ -212,9 +260,12 @@ class Race:
         self.positions = {}
         self.results_log = [] # A simple log of the finish order
         self.verbose = verbose
+        self.track = None
+        self._results_persisted = False
 
         self._load_race_data()
         self._load_horse_entries()
+        self._load_track_geometry()
 
     def _load_race_data(self):
         """Loads the race's core data (distance, tier) from the DB."""
@@ -273,6 +324,29 @@ class Race:
         finally:
             if conn:
                 conn.close()
+
+    def _load_track_geometry(self):
+        """Attempts to attach SVG-based track data for the race distance."""
+        if self.distance <= 0:
+            return
+
+        try:
+            track = DEFAULT_TRACK_REGISTRY.find_by_distance(float(self.distance))
+        except Exception as exc:
+            if self.verbose:
+                print(f"Failed to match SVG track: {exc}")
+            return
+
+        if not track:
+            if self.verbose:
+                print(f"No SVG track registered for ~{self.distance}m races yet.")
+            return
+
+        self.track = track
+
+        if self.verbose:
+            delta = abs(track.distance - float(self.distance))
+            print(f"Attached SVG track: {track.name} ({track.distance:.2f}m, Δ {delta:.2f}m)")
 
     def _get_current_phase(self, horse_position):
         """Determines the race phase based on percentage of distance covered."""
@@ -406,35 +480,41 @@ class Race:
         Runs the full race simulation until all horses finish.
         Saves the detailed log to the database.
         """
+        if self._should_use_hybrid_engine():
+            return self._run_hybrid_simulation(silent=silent)
+        return self._run_legacy_simulation(silent=silent)
+
+    def _run_legacy_simulation(self, silent=False):
         if not silent:
             print(f"\n--- Simulating Race {self.race_id} ({self.distance}m) ---")
 
         if not self.horses:
-            if not silent: print("Race simulation cancelled: No horses.")
+            if not silent:
+                print("Race simulation cancelled: No horses.")
             return []
 
         full_race_log = []
         round_number = 0
-        max_rounds = 100 # Safety break to prevent infinite loops
+        max_rounds = 100  # Safety break to prevent infinite loops
 
         # Loop until all horses are in the results log
         while len(self.results_log) < len(self.horses) and round_number < max_rounds:
             round_number += 1
-            if not silent: print(f"  Simulating Round {round_number}...")
+            if not silent:
+                print(f"  Simulating Round {round_number}...")
             round_log = self._run_round(round_number)
             full_race_log.extend(round_log)
 
         if round_number >= max_rounds:
-             print(f"!!! WARNING: Race {self.race_id} exceeded max rounds ({max_rounds}). Force finishing.")
-             # Force add any remaining horses based on final position
-             remaining_horses = sorted(
-                 [h for h in self.horses if h.horse_id not in self.results_log],
-                 key=lambda h: self.positions.get(h.horse_id, 0),
-                 reverse=True
-             )
-             for h in remaining_horses:
-                 self.results_log.append(h.horse_id)
-
+            print(f"!!! WARNING: Race {self.race_id} exceeded max rounds ({max_rounds}). Force finishing.")
+            # Force add any remaining horses based on final position
+            remaining_horses = sorted(
+                [h for h in self.horses if h.horse_id not in self.results_log],
+                key=lambda h: self.positions.get(h.horse_id, 0),
+                reverse=True,
+            )
+            for h in remaining_horses:
+                self.results_log.append(h.horse_id)
 
         # --- Save Log to Database ---
         if not silent:
@@ -446,29 +526,224 @@ class Race:
                     cur.execute("DELETE FROM race_rounds WHERE race_id = %s", (self.race_id,))
 
                     args_list = [
-                        (log['race_id'], log['round_number'], log['horse_id'],
-                         log['movement_roll'], log['stamina_multiplier'],
-                         log['final_position'], log['round_events'])
+                        (
+                            log["race_id"],
+                            log["round_number"],
+                            log["horse_id"],
+                            log["movement_roll"],
+                            log["stamina_multiplier"],
+                            log["final_position"],
+                            log["round_events"],
+                        )
                         for log in full_race_log
                     ]
-                    if args_list: # Ensure list is not empty
+                    if args_list:  # Ensure list is not empty
                         psycopg2.extras.execute_values(
                             cur,
                             "INSERT INTO race_rounds (race_id, round_number, horse_id, movement_roll, stamina_multiplier, final_position, round_events) VALUES %s",
-                            args_list
+                            args_list,
                         )
                         conn.commit()
                         print(f"     ...Saved {len(full_race_log)} round logs to database.")
                     else:
                         print("     ...No round logs generated to save.")
             except Exception as e:
-                if conn: conn.rollback()
+                if conn:
+                    conn.rollback()
                 print(f"!!! Error saving race log: {e}")
             finally:
-                if conn: conn.close()
+                if conn:
+                    conn.close()
 
         return self.get_results(silent=silent)
-    
+
+    def _persist_results(self, finisher_ids: List[int]) -> None:
+        if self._results_persisted or not finisher_ids:
+            return
+        try:
+            derby_queries.clear_race_results(self.race_id)
+            for idx, horse_id in enumerate(finisher_ids, start=1):
+                derby_queries.record_race_result(self.race_id, horse_id, idx)
+            derby_queries.set_race_winner(self.race_id, finisher_ids[0])
+            self._results_persisted = True
+        except Exception as exc:
+            print(f"Warning: failed to persist race results for race {self.race_id}: {exc}")
+
+    def _run_hybrid_simulation(self, silent: bool = False):
+        if not self.track:
+            if not silent:
+                print("Hybrid engine enabled but no track geometry found; falling back to legacy simulation.")
+            return self._run_legacy_simulation(silent=silent)
+
+        if not self.horses:
+            if not silent:
+                print("Race simulation cancelled: No horses.")
+            return []
+
+        if not silent:
+            print(f"\n--- Simulating Race {self.race_id} ({self.distance}m) [Hybrid] ---")
+
+        self.results_log = []
+        self.positions = {horse.horse_id: 0.0 for horse in self.horses}
+
+        collect = not silent
+        telemetry = TelemetryCollector() if collect else None
+        profiles = self._build_racer_profiles()
+
+        loop = HybridRaceLoop(self.track, profiles, telemetry=telemetry)
+        loop.run_until_finished(max_time=600.0)
+
+        finished_ids = list(loop.finished_order)
+        if len(finished_ids) < len(profiles):
+            remaining = sorted(loop.states, key=lambda s: s.pos, reverse=True)
+            for state in remaining:
+                racer_id = state.profile.racer_id
+                if racer_id not in finished_ids:
+                    finished_ids.append(racer_id)
+
+        self.results_log = finished_ids
+        self._persist_results(finished_ids)
+        for state in loop.states:
+            self.positions[state.profile.racer_id] = state.pos
+
+        if collect and telemetry:
+            self._write_hybrid_telemetry(telemetry, silent=silent)
+
+        return self.get_results(silent=silent)
+
+    def _should_use_hybrid_engine(self) -> bool:
+        return _hybrid_engine_enabled() and self.track is not None
+
+    def _build_racer_profiles(self) -> List[RacerProfile]:
+        profiles: List[RacerProfile] = []
+        for horse in self.horses:
+            strategy = self._map_strategy(horse.strategy)
+            acc_value = getattr(horse, "acc", None)
+            if not acc_value or acc_value <= 0:
+                acc_value = horse.spd
+            stats = RacerStats(
+                speed=float(horse.spd),
+                acceleration=float(max(acc_value, 1)),
+                stamina=float(horse.sta),
+                grit=float(horse.grt),
+                cognition=float(horse.cog),
+                focus=float(horse.fcs),
+                luck=float(horse.lck),
+            )
+            distance_grade = self._infer_distance_aptitude(horse)
+            aptitudes = Aptitudes(distance=distance_grade, surface=DEFAULT_SURFACE_APTITUDE)
+            profiles.append(
+                RacerProfile(
+                    racer_id=horse.horse_id,
+                    name=horse.name,
+                    stats=stats,
+                    strategy=strategy,
+                    aptitudes=aptitudes,
+                )
+            )
+        return profiles
+
+    def _map_strategy(self, raw_strategy) -> Strategy:
+        if isinstance(raw_strategy, Strategy):
+            return raw_strategy
+        if isinstance(raw_strategy, int):
+            return STRATEGY_INT_MAP.get(raw_strategy, Strategy.PACE_CHASER)
+        if raw_strategy is None:
+            return Strategy.PACE_CHASER
+        raw_key = str(raw_strategy).strip().lower()
+        if raw_key in STRATEGY_STRING_MAP:
+            return STRATEGY_STRING_MAP[raw_key]
+        normalized_key = raw_key.replace('-', ' ').replace('_', ' ')
+        return STRATEGY_STRING_MAP.get(normalized_key, Strategy.PACE_CHASER)
+
+    def _infer_distance_aptitude(self, horse) -> AptitudeGrade:
+        try:
+            preferred_center = (horse.min_preferred_distance + horse.max_preferred_distance) / 2
+            diff = abs(preferred_center - self.distance)
+        except (TypeError, AttributeError):
+            diff = None
+
+        grade = 'A'
+        if diff is not None:
+            if diff <= 50:
+                grade = 'S'
+            elif diff <= 150:
+                grade = 'A'
+            elif diff <= 300:
+                grade = 'B'
+            else:
+                grade = 'C'
+        try:
+            return AptitudeGrade.from_str(grade)
+        except ValueError:
+            return AptitudeGrade.A
+
+    def _write_hybrid_telemetry(self, telemetry: TelemetryCollector, silent: bool = False) -> None:
+        frames = telemetry.export()
+        if not frames:
+            return
+
+        conn = None
+        try:
+            conn = get_db_connection()
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM race_rounds WHERE race_id = %s", (self.race_id,))
+
+                args_list = []
+                for frame in frames:
+                    for racer in frame.racers:
+                        event_payload = {
+                            "tick": frame.tick,
+                            "time": frame.time,
+                            "phase": frame.phase,
+                            "leading_segment": frame.leading_segment,
+                            "lane_position": racer.lane_position,
+                            "world_position": {
+                                "x": racer.world_position[0],
+                                "y": racer.world_position[1],
+                            },
+                            "distance_delta": racer.distance_delta,
+                            "speed_delta": racer.speed_delta,
+                            "speed": racer.speed,
+                            "target_speed": racer.target_speed,
+                            "accel": racer.accel,
+                            "hp": racer.hp,
+                            "hp_delta": racer.hp_delta,
+                            "stamina_drain": racer.stamina_drain,
+                            "ai_mode": racer.ai_mode,
+                            "status_flags": racer.status_flags,
+                            "debug": racer.debug,
+                        }
+                        args_list.append(
+                            (
+                                self.race_id,
+                                frame.tick + 1,
+                                racer.racer_id,
+                                racer.distance_delta,
+                                racer.stamina_drain,
+                                racer.pos,
+                                json.dumps(event_payload),
+                            )
+                        )
+
+                if args_list:
+                    psycopg2.extras.execute_values(
+                        cur,
+                        "INSERT INTO race_rounds (race_id, round_number, horse_id, movement_roll, stamina_multiplier, final_position, round_events) VALUES %s",
+                        args_list,
+                    )
+                    conn.commit()
+                    if not silent:
+                        print(f"     ...Saved {len(args_list)} telemetry rows to database.")
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            if not silent:
+                print(f"!!! Error saving telemetry log: {e}")
+        finally:
+            if conn:
+                conn.close()
+
     def get_results(self, silent=False):
         """Returns the final, ordered list of horse objects based on finish log."""
         # Use the results_log (which stores IDs in finish order)

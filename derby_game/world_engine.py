@@ -247,7 +247,7 @@ def _process_training_queue(cur):
             
             # 5. Recalculate HG Score
             new_hg_score = horse._calculate_hg(
-                horse.spd, horse.sta, horse.fcs, 
+                horse.spd, horse.sta, horse.acc, horse.fcs, 
                 horse.grt, horse.cog, horse.lck
             )
             
@@ -376,6 +376,7 @@ class _MarketHorseAdapter:
         self.stats = {
             "spd": horse.spd,
             "sta": horse.sta,
+            "acc": horse.acc,
             "fcs": horse.fcs,
             "grt": horse.grt,
             "cog": horse.cog,
@@ -568,8 +569,9 @@ def _run_race_lifecycle(race_id: int, racing_cfg: dict):
         return
 
     payout_map = _calculate_purse_payouts(race, finishers, racing_cfg)
-
-    derby_queries.clear_race_results(race_id)
+    results_persisted = getattr(race_sim, "_results_persisted", False)
+    if not results_persisted:
+        derby_queries.clear_race_results(race_id)
     for idx, horse in enumerate(finishers, start=1):
         derby_queries.record_race_result(
             race_id,
@@ -811,7 +813,7 @@ def _apply_stat_decay(cur):
     all_horse_ids = [record[0] for record in cur.fetchall()]
     
     horses_decayed = 0
-    stats_to_decay = ['spd', 'sta', 'fcs', 'grt', 'cog']
+    stats_to_decay = ['spd', 'sta', 'acc', 'fcs', 'grt', 'cog']
 
     for horse_id in all_horse_ids:
         horse = Horse(horse_id)
@@ -831,7 +833,7 @@ def _apply_stat_decay(cur):
             setattr(horse, stat_to_lose, new_value)
             
             new_hg_score = horse._calculate_hg(
-                horse.spd, horse.sta, horse.fcs, 
+                horse.spd, horse.sta, horse.acc, horse.fcs, 
                 horse.grt, horse.cog, horse.lck
             )
             
@@ -853,11 +855,11 @@ def _create_test_veterans(cur):
     # We use 'NOW() - interval' to create past timestamps
     # Per design doc: Age 5=37 days, Age 6=49 days, Age 7=61 days
     veteran_horses = [
-        # (owner_id, name, birth_timestamp, spd, sta, fcs, grt, cog, lck, hg_score)
-        (1, 'Old Timer (Age 5)', "NOW() - interval '37 days'", 100, 100, 100, 100, 100, 300, 1200),
-        (1, 'Senior Stallion (Age 6)', "NOW() - interval '49 days'", 100, 100, 100, 100, 100, 300, 1200),
-        (2, 'The Geezer (Age 7)', "NOW() - interval '61 days'", 100, 100, 100, 100, 100, 300, 1200),
-        (2, 'Mostly Retired (Age 7)', "NOW() - interval '70 days'", 100, 100, 100, 100, 100, 300, 1200),
+        # (owner_id, name, birth_timestamp, spd, sta, acc, fcs, grt, cog, lck, hg_score)
+        (1, 'Old Timer (Age 5)', "NOW() - interval '37 days'", 100, 100, 100, 100, 100, 100, 300, 1200),
+        (1, 'Senior Stallion (Age 6)', "NOW() - interval '49 days'", 100, 100, 100, 100, 100, 100, 300, 1200),
+        (2, 'The Geezer (Age 7)', "NOW() - interval '61 days'", 100, 100, 100, 100, 100, 100, 300, 1200),
+        (2, 'Mostly Retired (Age 7)', "NOW() - interval '70 days'", 100, 100, 100, 100, 100, 100, 300, 1200),
     ]
     
     # Clear any previously generated test veterans
@@ -866,13 +868,13 @@ def _create_test_veterans(cur):
     # Insert the new ones
     for horse in veteran_horses:
         sql = f"""
-        INSERT INTO horses (owner_id, name, birth_timestamp, spd, sta, fcs, grt, cog, lck, hg_score)
-        VALUES (%s, %s, {horse[2]}, %s, %s, %s, %s, %s, %s, %s);
+        INSERT INTO horses (owner_id, name, birth_timestamp, spd, sta, acc, fcs, grt, cog, lck, hg_score)
+        VALUES (%s, %s, {horse[2]}, %s, %s, %s, %s, %s, %s, %s, %s);
         """
         # Note: We are formatting horse[2] directly into the SQL
         # This is safe ONLY because we defined the string ourselves.
         cur.execute(sql, (
-            horse[0], horse[1], horse[3], horse[4], horse[5], horse[6], horse[7], horse[8], horse[9]
+            horse[0], horse[1], horse[3], horse[4], horse[5], horse[6], horse[7], horse[8], horse[9], horse[10]
         ))
     
     print(f"     ...Created {len(veteran_horses)} veteran horses.")
@@ -966,8 +968,8 @@ if __name__ == "__main__":
             # This horse has 100 SPD, 1200 HG
             cur.execute("DELETE FROM horses WHERE horse_id = 1;")
             cur.execute(
-                "INSERT INTO horses (horse_id, owner_id, name, birth_timestamp, spd, sta, fcs, grt, cog, lck, hg_score, is_bot) "
-                "VALUES (1, 1, 'Old Timer (Age 5)', NOW() - interval '37 days', 100, 100, 100, 100, 100, 300, 1200, TRUE);"
+                "INSERT INTO horses (horse_id, owner_id, name, birth_timestamp, spd, sta, acc, fcs, grt, cog, lck, hg_score, is_bot) "
+                "VALUES (1, 1, 'Old Timer (Age 5)', NOW() - interval '37 days', 100, 100, 100, 100, 100, 100, 300, 1200, TRUE);"
             )
             
             # 2. Create a finished training job for this horse

@@ -32,8 +32,25 @@
       "max": 500
     }
   },
+  "race_engine": {
+    "use_hybrid_engine": true,
+    "telemetry_storage": "database",
+    "strategy_phase_speed": {
+      "front_runner": { "opening": 1.0,   "middle": 0.98,  "final": 0.962 },
+      "pace_chaser": { "opening": 0.978,  "middle": 0.991, "final": 0.975 },
+      "late_surger": { "opening": 0.938,  "middle": 0.998, "final": 0.994 },
+      "end_closer":  { "opening": 0.931,  "middle": 1.0,   "final": 1.0 }
+    },
+    "strategy_phase_accel": {
+      "front_runner": { "opening": 1.0,   "middle": 1.0,   "final": 0.996 },
+      "pace_chaser": { "opening": 0.985,  "middle": 1.0,   "final": 0.996 },
+      "late_surger": { "opening": 0.975,  "middle": 1.0,   "final": 1.0 },
+      "end_closer":  { "opening": 0.945,  "middle": 1.0,   "final": 0.997 }
+    }
+  },
   "hg_formula_weights": {
     "spd": 3.5,
+    "acc": 3.0,
     "sta": 3.5,
     "fcs": 1.5,
     "grt": 1.0,

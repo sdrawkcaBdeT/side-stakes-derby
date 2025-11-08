@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "label": "no_pk",
+    "track": "1710m - track001 - Exeter Racecourse",
+    "distance": 1709.5826162097578,
+    "seed": 1337,
+    "dt": 0.06666666666666667,
+    "overrides": {
+      "strategy_mods": [],
+      "start_dash_target": null,
+      "start_dash_accel": null,
+      "spurt_scale": 1.0,
+      "disable_position_keep": true
+    }
+  },
+  "samples": {
+    "t10": {
+      "time": 10.06666666666665,
+      "global_phase": "opening",
+      "leader": {
+        "name": "Measured Tempo",
+        "strategy": "PACE_CHASER",
+        "pos": 176.36942015741536,
+        "speed": 16.577094495783108,
+        "target_speed": 18.9677399678452
+      },
+      "trailer": {
+        "name": "Late Surge",
+        "strategy": "LATE_SURGER",
+        "pos": 175.24210975188436,
+        "speed": 16.59919138243772,
+        "target_speed": 17.207061742468277
+      },
+      "gap_m": 1.1273104055310057,
+      "racers": [
+        {
+          "name": "Measured Tempo",
+          "strategy": "PACE_CHASER",
+          "pos": 176.36942015741536,
+          "speed": 16.577094495783108,
+          "target_speed": 18.9677399678452,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Blazing Comet",
+          "strategy": "FRONT_RUNNER",
+          "pos": 175.37379241472354,
+          "speed": 17.097538252578655,
+          "target_speed": 20.791077358462434,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Closing Bell",
+          "strategy": "END_CLOSER",
+          "pos": 175.34145084775741,
+          "speed": 17.122269193522595,
+          "target_speed": 14.900510576201047,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Late Surge",
+          "strategy": "LATE_SURGER",
+          "pos": 175.24210975188436,
+          "speed": 16.59919138243772,
+          "target_speed": 17.207061742468277,
+          "pacing_speed_factor": 1.0
+        }
+      ]
+    },
+    "t30": {
+      "time": 30.06666666666658,
+      "global_phase": "opening",
+      "leader": {
+        "name": "Measured Tempo",
+        "strategy": "PACE_CHASER",
+        "pos": 528.736185930253,
+        "speed": 16.577094495783108,
+        "target_speed": 18.407493277355417
+      },
+      "trailer": {
+        "name": "Blazing Comet",
+        "strategy": "FRONT_RUNNER",
+        "pos": 527.9003543235578,
+        "speed": 17.097538252578655,
+        "target_speed": 20.336956349209554
+      },
+      "gap_m": 0.8358316066951375,
+      "racers": [
+        {
+          "name": "Measured Tempo",
+          "strategy": "PACE_CHASER",
+          "pos": 528.736185930253,
+          "speed": 16.577094495783108,
+          "target_speed": 18.407493277355417,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Closing Bell",
+          "strategy": "END_CLOSER",
+          "pos": 528.3779290647158,
+          "speed": 17.122269193522595,
+          "target_speed": 15.666300151885478,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Late Surge",
+          "strategy": "LATE_SURGER",
+          "pos": 528.0785723395675,
+          "speed": 16.59919138243772,
+          "target_speed": 16.80979394553745,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Blazing Comet",
+          "strategy": "FRONT_RUNNER",
+          "pos": 527.9003543235578,
+          "speed": 17.097538252578655,
+          "target_speed": 20.336956349209554,
+          "pacing_speed_factor": 1.0
+        }
+      ]
+    },
+    "t60": {
+      "time": 60.0000000000013,
+      "global_phase": "middle",
+      "leader": {
+        "name": "Closing Bell",
+        "strategy": "END_CLOSER",
+        "pos": 1056.7558581294516,
+        "speed": 17.122269193522595,
+        "target_speed": 16.91374206687899
+      },
+      "trailer": {
+        "name": "Blazing Comet",
+        "strategy": "FRONT_RUNNER",
+        "pos": 1055.5151086471346,
+        "speed": 17.097538252578655,
+        "target_speed": 20.369497909165315
+      },
+      "gap_m": 1.2407494823169145,
+      "racers": [
+        {
+          "name": "Closing Bell",
+          "strategy": "END_CLOSER",
+          "pos": 1056.7558581294516,
+          "speed": 17.122269193522595,
+          "target_speed": 16.91374206687899,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Late Surge",
+          "strategy": "LATE_SURGER",
+          "pos": 1056.1571446791547,
+          "speed": 16.59919138243772,
+          "target_speed": 18.552532300299678,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Measured Tempo",
+          "strategy": "PACE_CHASER",
+          "pos": 1056.1117787036242,
+          "speed": 16.577094495783108,
+          "target_speed": 19.110411068218554,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Blazing Comet",
+          "strategy": "FRONT_RUNNER",
+          "pos": 1055.5151086471346,
+          "speed": 17.097538252578655,
+          "target_speed": 20.369497909165315,
+          "pacing_speed_factor": 1.02
+        }
+      ]
+    },
+    "final_phase_start": {
+      "time": 72.86666666666765,
+      "global_phase": "final",
+      "leader": {
+        "name": "Closing Bell",
+        "strategy": "END_CLOSER",
+        "pos": 1283.8759924490373,
+        "speed": 17.122269193522595,
+        "target_speed": 20.36488626609733
+      },
+      "trailer": {
+        "name": "Blazing Comet",
+        "strategy": "FRONT_RUNNER",
+        "pos": 1282.307196808494,
+        "speed": 17.097538252578655,
+        "target_speed": 24.34313285491813
+      },
+      "gap_m": 1.5687956405433852,
+      "racers": [
+        {
+          "name": "Closing Bell",
+          "strategy": "END_CLOSER",
+          "pos": 1283.8759924490373,
+          "speed": 17.122269193522595,
+          "target_speed": 20.36488626609733,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Late Surge",
+          "strategy": "LATE_SURGER",
+          "pos": 1283.1486022772401,
+          "speed": 16.59919138243772,
+          "target_speed": 21.607497446158643,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Measured Tempo",
+          "strategy": "PACE_CHASER",
+          "pos": 1282.80106468416,
+          "speed": 16.577094495783108,
+          "target_speed": 19.500701997984233,
+          "pacing_speed_factor": 1.0
+        },
+        {
+          "name": "Blazing Comet",
+          "strategy": "FRONT_RUNNER",
+          "pos": 1282.307196808494,
+          "speed": 17.097538252578655,
+          "target_speed": 24.34313285491813,
+          "pacing_speed_factor": 1.0
+        }
+      ]
+    },
+    "finish": {
+      "time": 97.13333333333294,
+      "gap_m": 0.0,
+      "completed": [
+        "Late Surge",
+        "Closing Bell",
+        "Measured Tempo",
+        "Blazing Comet"
+      ]
+    }
+  },
+  "horse_metrics": {
+    "1": {
+      "name": "Blazing Comet",
+      "strategy": "FRONT_RUNNER",
+      "avg_speed": 17.083169049300814,
+      "avg_target_speed": 20.79567562849463,
+      "pacing_factor_min": 1.0,
+      "pacing_factor_max": 1.02,
+      "speed_cap_ticks": 0,
+      "blocked_front_ticks": 0,
+      "blocked_side_ticks": 1438
+    },
+    "2": {
+      "name": "Measured Tempo",
+      "strategy": "PACE_CHASER",
+      "avg_speed": 16.57903717938677,
+      "avg_target_speed": 19.16099118629018,
+      "pacing_factor_min": 0.9,
+      "pacing_factor_max": 1.0,
+      "speed_cap_ticks": 0,
+      "blocked_front_ticks": 0,
+      "blocked_side_ticks": 1442
+    },
+    "3": {
+      "name": "Late Surge",
+      "strategy": "LATE_SURGER",
+      "avg_speed": 16.587149570531516,
+      "avg_target_speed": 18.574384680217058,
+      "pacing_factor_min": 0.9,
+      "pacing_factor_max": 1.0,
+      "speed_cap_ticks": 0,
+      "blocked_front_ticks": 0,
+      "blocked_side_ticks": 1442
+    },
+    "4": {
+      "name": "Closing Bell",
+      "strategy": "END_CLOSER",
+      "avg_speed": 17.104624311611992,
+      "avg_target_speed": 17.214731134390874,
+      "pacing_factor_min": 0.9,
+      "pacing_factor_max": 1.0,
+      "speed_cap_ticks": 0,
+      "blocked_front_ticks": 0,
+      "blocked_side_ticks": 1436
+    }
+  },
+  "max_gap": {
+    "max_gap_m": 2.1823949313193225,
+    "at_time": 96.93333333333295,
+    "leader": "Closing Bell",
+    "trailer": "Blazing Comet"
+  },
+  "finish_order": [
+    "Late Surge",
+    "Closing Bell",
+    "Measured Tempo",
+    "Blazing Comet"
+  ]
+}
